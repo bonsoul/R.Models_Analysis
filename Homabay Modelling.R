@@ -28,4 +28,29 @@ df_clean <- df %>%
 Surv(time = df$time, event = df$event)
 
 
+survival_model <- survfit(Surv(time, event) ~ 1, data = df_clean)
 
+
+summary(survival_model)
+
+
+plot(survival_model,
+     xlab = "Time",
+     ylab = "Survival Probability",
+     main = "Kaplan-Meier Curve",
+     col = "blue",
+     lwd = 2)
+
+
+survival_model <- survfit(Surv(time, event) ~ patnershivstatus, data = df_clean)
+
+plot(survival_model,
+     col = c("red", "blue"),
+     lwd = 2,
+     xlab = "Time",
+     ylab = "Survival Probability")
+
+legend("bottomleft",
+       legend = levels(df_clean$patnershivstatus),
+       col = c("red", "blue"),
+       lwd = 2)
