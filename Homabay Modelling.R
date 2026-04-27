@@ -520,10 +520,10 @@ cat("\nIf p > 0.05 for each variable, PH assumption holds.\n")
 all_cox_vars <- c(maternal_vars, infant_vars)
 
 tbl_cox_univ <- df %>%
-  select(all_of(c(all_cox_vars, "surv_time", "surv_event"))) %>%
+  select(all_of(c(all_cox_vars, "surv_time", "event"))) %>%
   tbl_uvregression(
     method       = coxph,
-    y            = Surv(surv_time, surv_event),
+    y            = Surv(surv_time, event),
     exponentiate = TRUE,
     label        = list(
       age_group                   ~ "Age Group",
@@ -560,7 +560,7 @@ print(tbl_cox_univ)
 
 # ── 4c. Final multivariable Cox PH model ──────────────────────────────────────
 # Include variables with clinical plausibility & p < 0.25 from univariable Cox
-cox_final_formula <- Surv(surv_time, surv_event) ~
+cox_final_formula <- Surv(surv_time, event) ~
   adherence + cd4cat + whohivdiseasestage + haartduringpregnancy +
   syphillis + historyofstiduringpregnancy + patnershivstatus +
   durationofbfmonths_cat + bwt_cat + sexofthebaby + tmembraner_cat
@@ -637,6 +637,7 @@ p4b <- ggsurvplot(
 )
 print(p4b)
 
+
 km_cd4 <- survfit(surv_obj ~ cd4cat, data = df)
 p4c <- ggsurvplot(
   km_cd4, data = df,
@@ -687,3 +688,4 @@ cat("Wald test p-value:",
 cat("Score (log-rank) test p-value:",
     round(summary(cox_final_model)$sctest["pvalue"], 6), "\n")
 cat("AIC:", AIC(cox_final_model), "\n")
+
