@@ -689,3 +689,57 @@ cat("Score (log-rank) test p-value:",
     round(summary(cox_final_model)$sctest["pvalue"], 6), "\n")
 cat("AIC:", AIC(cox_final_model), "\n")
 
+
+
+
+
+################################################################################
+#  SUPPLEMENTARY: COMBINED MERGED TABLE (Univariable + Multivariable)
+################################################################################
+
+cat("\n========== SUPPLEMENTARY: MERGED TABLES ==========\n")
+
+# Merged maternal logistic regression table
+tbl_maternal_merged <- tbl_merge(
+  tbls        = list(univ_maternal, tbl_mv_maternal),
+  tab_spanner = c("**Univariable**", "**Multivariable**")
+) %>%
+  modify_caption("**Table 10: Logistic Regression – Maternal Factors (Combined)**")
+
+print(tbl_maternal_merged)
+
+# Merged Cox table (univariable + multivariable subset)
+tbl_cox_mv_sub <- df %>%
+  select(surv_time, surv_event,
+         adherence, cd4cat, whohivdiseasestage, haartduringpregnancy,
+         syphillis, historyofstiduringpregnancy, patnershivstatus,
+         durationofbfmonths_cat, bwt_cat, sexofthebaby, tmembraner_cat) %>%
+  tbl_uvregression(
+    method       = coxph,
+    y            = Surv(surv_time, surv_event),
+    exponentiate = TRUE
+  ) %>%
+  bold_p(t = 0.05)
+
+tbl_cox_merged <- tbl_merge(
+  tbls        = list(tbl_cox_mv_sub, tbl_cox_final),
+  tab_spanner = c("**Univariable HR**", "**Multivariable HR**")
+) %>%
+  modify_caption("**Table 11: Cox PH Regression – Combined Table**")
+
+print(tbl_cox_merged)
+
+cat("\n\n====================================================\n")
+cat(" ANALYSIS COMPLETE\n")
+cat("====================================================\n")
+cat("Key Results Summary:\n")
+cat(sprintf("  Total HIV-exposed infants analysed : %d\n", nrow(df)))
+cat(sprintf("  HIV-positive infants (events)      : %d (%.1f%%)\n",
+            sum(df$hiv_positive), mean(df$hiv_positive) * 100))
+cat(sprintf("  Overall HIV-free survival rate     : %.1f%%\n",
+            (1 - mean(df$hiv_positive)) * 100))
+cat(sprintf("  Median follow-up time              : %.0f weeks\n",
+            median(df$surv_time)))
+cat(sprintf("  C-statistic (Cox model)            : %.4f\n",
+            summary(cox_final_model)$concordance[1]))
+cat("====================================================\n")
