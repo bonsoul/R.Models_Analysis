@@ -365,6 +365,135 @@ plot(survival_model,
      lwd = 2)
 
 
+
+################################################################################
+#  OBJECTIVE 3 – INFANT FACTORS ASSOCIATED WITH HIV ANTIGEN POSITIVITY
+################################################################################
+
+cat("\n========== OBJECTIVE 3: INFANT FACTORS ==========\n")
+
+infant_vars <- c(
+  "sexofthebaby", "bwt_cat", "durationofbfmonths_cat",
+  "babywt6wks"  # weight at 6 weeks as proxy of growth/nutrition
+)
+
+# ── 3a. Descriptive table ────────────────────────────────────────────────────
+tbl_infant_desc <- df %>%
+  select(all_of(c(infant_vars, "hiv_positive_fac"))) %>%
+  tbl_summary(
+    by        = hiv_positive_fac,
+    statistic = list(all_categorical() ~ "{n} ({p}%)",
+                     all_continuous()  ~ "{mean} ({sd})"),
+    missing   = "no",
+    label     = list(
+      sexofthebaby            ~ "Sex of Infant",
+      bwt_cat                 ~ "Birth Weight Category",
+      durationofbfmonths_cat  ~ "Duration of Breastfeeding",
+      babywt6wks              ~ "Infant Weight at 6 Weeks (kg)"
+    )
+  ) %>%
+  add_p(test = list(all_categorical() ~ "chisq.test",
+                    all_continuous()  ~ "t.test")) %>%
+  add_overall() %>%
+  bold_labels() %>%
+  modify_caption("**Table 5: Infant Factors by HIV Status**")
+
+print(tbl_infant_desc)
+
+# ── 3b. Univariable logistic regression (infant) ─────────────────────────────
+univ_infant <- df %>%
+  select(all_of(c(infant_vars, "hiv_positive"))) %>%
+  tbl_uvregression(
+    method       = glm,
+    y            = hiv_positive,
+    method.args  = list(family = binomial),
+    exponentiate = TRUE,
+    label        = list(
+      sexofthebaby            ~ "Sex of Infant",
+      bwt_cat                 ~ "Birth Weight Category",
+      durationofbfmonths_cat  ~ "Duration of Breastfeeding",
+      babywt6wks              ~ "Infant Weight at 6 Weeks (kg)"
+    )
+  ) %>%
+  bold_p(t = 0.05) %>%
+  bold_labels() %>%
+  modify_caption("**Table 6: Univariable Logistic Regression – Infant Factors**")
+
+print(univ_infant)
+
+# ── 3c. Multivariable logistic regression (infant) ────────────────────────────
+mv_infant_formula <- hiv_positive ~ sexofthebaby + bwt_cat +
+  durationofbfmonths_cat + babywt6wks
+
+mv_infant_model <- glm(mv_infant_formula, data = df, family = binomial)
+cat("\nMultivariable Logistic Regression – Infant Factors\n")
+print(summary(mv_infant_model))
+
+tbl_mv_infant <- tbl_regression(
+  mv_infant_model,
+  exponentiate = TRUE,
+  label = list(
+    sexofthebaby            ~ "Sex of Infant",
+    bwt_cat                 ~ "Birth Weight Category",
+    durationofbfmonths_cat  ~ "Duration of Breastfeeding",
+    babywt6wks              ~ "Infant Weight at 6 Weeks (kg)"
+  )
+) %>%
+  bold_p(t = 0.05) %>%
+  bold_labels() %>%
+  modify_caption("**Table 7: Multivariable Logistic Regression – Infant Factors**")
+
+print(tbl_mv_infant)
+
+# ── 3d. Forest plot – Infant OR ──────────────────────────────────────────────
+mv_infant_tidy <- broom::tidy(mv_infant_model, exponentiate = TRUE,
+                              conf.int = TRUE) %>%
+  filter(term != "(Intercept)") %>%
+  mutate(significant = ifelse(p.value < 0.05, "Significant (p<0.05)", "Not significant"))
+
+p3 <- ggplot(mv_infant_tidy, aes(x = estimate, y = reorder(term, estimate),
+                                 color = significant)) +
+  geom_point(size = 3) +
+  geom_errorbarh(aes(xmin = conf.low, xmax = conf.high), height = 0.25) +
+  geom_vline(xintercept = 1, linetype = "dashed", color = "gray40") +
+  scale_x_log10(labels = scales::number_format(accuracy = 0.01)) +
+  scale_color_manual(values = c("Significant (p<0.05)" = "#D73027",
+                                "Not significant" = "#4393C3")) +
+  labs(title = "Figure 4: Forest Plot – Infant Factors (Multivariable OR)",
+       x = "Odds Ratio (log scale)",
+       y = "",
+       color = "") +
+  theme_bw(base_size = 11) +
+  theme(legend.position = "bottom")
+
+print(p3)
+
+# ── 3e. Bar chart: HIV positivity by breastfeeding duration ──────────────────
+bf_summary <- df %>%
+  filter(!is.na(durationofbfmonths_cat)) %>%
+  group_by(durationofbfmonths_cat, hiv_positive_fac) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(durationofbfmonths_cat) %>%
+  mutate(pct = n / sum(n) * 100)
+
+p3b <- ggplot(bf_summary, aes(x = durationofbfmonths_cat, y = pct,
+                              fill = hiv_positive_fac)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = sprintf("%.1f%%", pct)),
+            position = position_dodge(width = 0.9), vjust = -0.3, size = 3.5) +
+  scale_fill_manual(values = c("HIV Negative" = "#4393C3",
+                               "HIV Positive" = "#D73027")) +
+  labs(title = "Figure 5: Infant HIV Status by Breastfeeding Duration",
+       x = "Duration of Breastfeeding",
+       y = "Percentage (%)",
+       fill = "HIV Status") +
+  theme_bw(base_size = 12) +
+  theme(legend.position = "bottom")
+
+print(p3b)
+
+
+
 survival_model <- survfit(Surv(time, event) ~ patnershivstatus, data = df_clean)
 
 plot(survival_model,
