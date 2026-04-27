@@ -229,6 +229,130 @@ print(ci_df)
 
 
 
+################################################################################
+#  OBJECTIVE 2 – MATERNAL FACTORS ASSOCIATED WITH HIV ANTIGEN POSITIVITY
+################################################################################
+
+cat("\n========== OBJECTIVE 2: MATERNAL FACTORS ==========\n")
+
+# Variables list
+maternal_vars <- c(
+  "age_group", "educationlevel", "maritalstatus", "residence",
+  "employmentstatus", "ancattendance", "ancvisits_cat",
+  "haartduringpregnancy", "adherence", "cd4cat", "whohivdiseasestage",
+  "hivstatusbeforepregnancy", "patnershivstatus",
+  "syphillis", "historyofstiduringpregnancy",
+  "malaria", "anaemia", "hypertention", "treatedduringpregnancy",
+  "tmembraner_cat"
+)
+
+# ── 2a. Descriptive table (Table 1) ──────────────────────────────────────────
+tbl_maternal <- df %>%
+  select(all_of(c(maternal_vars, "hiv_positive_fac"))) %>%
+  tbl_summary(
+    by        = hiv_positive_fac,
+    statistic = list(all_categorical() ~ "{n} ({p}%)",
+                     all_continuous()  ~ "{mean} ({sd})"),
+    missing   = "no",
+    label     = list(
+      age_group                   ~ "Age Group",
+      educationlevel              ~ "Education Level",
+      maritalstatus               ~ "Marital Status",
+      residence                   ~ "Residence",
+      employmentstatus            ~ "Employment Status",
+      ancattendance               ~ "ANC Attendance",
+      ancvisits_cat               ~ "Number of ANC Visits",
+      haartduringpregnancy        ~ "HAART During Pregnancy",
+      adherence                   ~ "Adherence to HAART",
+      cd4cat                      ~ "CD4 Count (cells/mm³)",
+      whohivdiseasestage          ~ "WHO HIV Disease Stage",
+      hivstatusbeforepregnancy    ~ "HIV Status Before Pregnancy",
+      patnershivstatus            ~ "Partner HIV Status",
+      syphillis                   ~ "Syphilis",
+      historyofstiduringpregnancy ~ "History of STI During Pregnancy",
+      malaria                     ~ "Malaria",
+      anaemia                     ~ "Anaemia",
+      hypertention                ~ "Hypertension",
+      treatedduringpregnancy      ~ "Treated for STI During Pregnancy",
+      tmembraner_cat              ~ "Rupture of Membranes"
+    )
+  ) %>%
+  add_p(test = list(all_categorical() ~ "chisq.test",
+                    all_continuous()  ~ "t.test")) %>%
+  add_overall() %>%
+  bold_labels() %>%
+  modify_caption("**Table 2: Maternal Factors by Infant HIV Status**")
+
+print(tbl_maternal)
+
+# ── 2b. Univariable logistic regression (maternal) ───────────────────────────
+univ_maternal <- df %>%
+  select(all_of(c(maternal_vars, "hiv_positive"))) %>%
+  tbl_uvregression(
+    method    = glm,
+    y         = hiv_positive,
+    method.args = list(family = binomial),
+    exponentiate = TRUE,
+    label     = list(
+      age_group                   ~ "Age Group",
+      educationlevel              ~ "Education Level",
+      maritalstatus               ~ "Marital Status",
+      residence                   ~ "Residence",
+      employmentstatus            ~ "Employment Status",
+      ancattendance               ~ "ANC Attendance",
+      ancvisits_cat               ~ "Number of ANC Visits",
+      haartduringpregnancy        ~ "HAART During Pregnancy",
+      adherence                   ~ "Adherence to HAART",
+      cd4cat                      ~ "CD4 Count (cells/mm³)",
+      whohivdiseasestage          ~ "WHO HIV Disease Stage",
+      hivstatusbeforepregnancy    ~ "HIV Status Before Pregnancy",
+      patnershivstatus            ~ "Partner HIV Status",
+      syphillis                   ~ "Syphilis",
+      historyofstiduringpregnancy ~ "History of STI During Pregnancy",
+      malaria                     ~ "Malaria",
+      anaemia                     ~ "Anaemia",
+      hypertention                ~ "Hypertension",
+      treatedduringpregnancy      ~ "Treated for STI During Pregnancy",
+      tmembraner_cat              ~ "Rupture of Membranes"
+    )
+  ) %>%
+  bold_p(t = 0.05) %>%
+  bold_labels() %>%
+  modify_caption("**Table 3: Univariable Logistic Regression – Maternal Factors**")
+
+print(univ_maternal)
+
+# ── 2c. Multivariable logistic regression (maternal) ─────────────────────────
+# Select variables significant at p < 0.25 in univariable (common threshold)
+# Using the key clinical & significant variables
+mv_maternal_formula <- hiv_positive ~ adherence + cd4cat + whohivdiseasestage +
+  haartduringpregnancy + ancattendance + historyofstiduringpregnancy +
+  syphillis + patnershivstatus + tmembraner_cat
+
+mv_maternal_model <- glm(mv_maternal_formula, data = df, family = binomial)
+cat("\nMultivariable Logistic Regression – Maternal Factors\n")
+print(summary(mv_maternal_model))
+
+tbl_mv_maternal <- tbl_regression(
+  mv_maternal_model,
+  exponentiate = TRUE,
+  label = list(
+    adherence                   ~ "Adherence to HAART",
+    cd4cat                      ~ "CD4 Count (cells/mm³)",
+    whohivdiseasestage          ~ "WHO HIV Disease Stage",
+    haartduringpregnancy        ~ "HAART During Pregnancy",
+    ancattendance               ~ "ANC Attendance",
+    historyofstiduringpregnancy ~ "History of STI During Pregnancy",
+    syphillis                   ~ "Syphilis",
+    patnershivstatus            ~ "Partner HIV Status",
+    tmembraner_cat              ~ "Rupture of Membranes"
+  )
+) %>%
+  bold_p(t = 0.05) %>%
+  bold_labels() %>%
+  modify_caption("**Table 4: Multivariable Logistic Regression – Maternal Factors**")
+
+print(tbl_mv_maternal)
 
 
 
