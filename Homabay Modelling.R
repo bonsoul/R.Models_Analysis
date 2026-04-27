@@ -729,5 +729,5 @@ tbl_cox_merged <- tbl_merge(
 
 print(tbl_cox_merged)
 
-
+#spatial analysis
 
