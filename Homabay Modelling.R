@@ -21,20 +21,10 @@ if(any(!installed)) install.packages(packages[!installed])
 # Load all
 lapply(packages, library, character.only = TRUE)
 
-
-
-
 # data
 df1 <- read_excel("D:/Downloads/Homabay_Data.xlsx")
 
-
-
-
-
 #data manipulation
-
-
-
 df <- df1 %>%
   mutate(
     hiv_positive = as.integer(
@@ -676,18 +666,6 @@ p4d <- ggplot(cox_tidy, aes(x = estimate, y = reorder(term, estimate),
 
 print(p4d)
 
-# ── 4h. Model performance metrics ────────────────────────────────────────────
-cat("\n--- Model Performance ---\n")
-cat("Concordance (C-statistic):",
-    round(summary(cox_final_model)$concordance[1], 4),
-    "SE:", round(summary(cox_final_model)$concordance[2], 4), "\n")
-cat("Likelihood ratio test p-value:",
-    round(summary(cox_final_model)$logtest["pvalue"], 6), "\n")
-cat("Wald test p-value:",
-    round(summary(cox_final_model)$waldtest["pvalue"], 6), "\n")
-cat("Score (log-rank) test p-value:",
-    round(summary(cox_final_model)$sctest["pvalue"], 6), "\n")
-cat("AIC:", AIC(cox_final_model), "\n")
 
 
 
