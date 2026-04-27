@@ -1,15 +1,36 @@
-library("tidyverse")
+################################################################################
+#  HIV-EXPOSED INFANT SURVIVAL ANALYSIS – HOMA BAY COUNTY
+#  Objectives:
+#    1. Survival rate of HIV-exposed infants
+#    2. Maternal factors associated with HIV antigen positivity
+#    3. Infant factors associated with HIV antigen positivity
+#    4. HIV-free survival model (Cox PH)
+################################################################################
 
-library("survival")
 
-library(readxl)
 
+packages <- c("survival", "readxl", "tidyverse",
+              "survminer", "finalfit", "gtsummary",
+              "flextable", "officer", "car",
+              "broom", "scales", "patchwork", "gridExtra")
+
+# Install missing packages
+installed <- packages %in% installed.packages()[, "Package"]
+if(any(!installed)) install.packages(packages[!installed])
+
+# Load all
+lapply(packages, library, character.only = TRUE)
+
+
+
+
+# data
 df <- read_excel("D:/Downloads/Homabay_Data.xlsx")
 
 
 glimpse(df)
 
-Summary(df)
+summary(df)
 
 str(df)
 
@@ -50,7 +71,5 @@ plot(survival_model,
      xlab = "Time",
      ylab = "Survival Probability")
 
-legend("bottomleft",
-       legend = levels(df_clean$patnershivstatus),
-       col = c("red", "blue"),
-       lwd = 2)
+
+
