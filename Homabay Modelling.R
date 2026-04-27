@@ -147,13 +147,22 @@ cat("Censored (HIV-negative):", sum(df$hiv_positive == 0), "\n\n")
 
 
 
+
+df$event <- ifelse(df$monthsantibodytest == "positive", 1,
+                   ifelse(df$monthsantibodytest == "negative", 0, NA))
+
+df <- df %>%
+  filter(!is.na(event), !is.na(time))
+
+
+
 ################################################################################
 #  OBJECTIVE 1 – SURVIVAL RATE OF HIV-EXPOSED INFANTS
 ################################################################################
 
 cat("========== OBJECTIVE 1: SURVIVAL RATE ==========\n")
 
-surv_obj <- Surv(time = df$surv_time, event = df$surv_event)
+surv_obj <- Surv(time = df$surv_time, event = df$event)
 
 # ── 1a. Overall Kaplan-Meier ──────────────────────────────────────────────────
 km_overall <- survfit(surv_obj ~ 1, data = df)
@@ -222,25 +231,6 @@ print(ci_df)
 
 
 
-Surv(time = df$time, event = df$monthsantibodytest)
-
-
-table(df$monthsantibodytest, useNA = "ifany")
-
-
-df$event <- ifelse(df$monthsantibodytest == "positive", 1,
-                   ifelse(df$monthsantibodytest == "negative", 0, NA))
-
-df_clean <- df %>%
-  filter(!is.na(event))
-
-Surv(time = df$time, event = df$event)
-
-
-survival_model <- survfit(Surv(time, event) ~ 1, data = df_clean)
-
-
-summary(survival_model)
 
 
 plot(survival_model,
