@@ -494,13 +494,196 @@ print(p3b)
 
 
 
-survival_model <- survfit(Surv(time, event) ~ patnershivstatus, data = df_clean)
+################################################################################
+#  OBJECTIVE 4 – HIV-FREE SURVIVAL MODEL (COX PROPORTIONAL HAZARDS)
+################################################################################
 
-plot(survival_model,
-     col = c("red", "blue"),
-     lwd = 2,
-     xlab = "Time",
-     ylab = "Survival Probability")
+cat("\n========== OBJECTIVE 4: HIV-FREE SURVIVAL MODEL ==========\n")
 
+# ── 4a. Test PH assumption before fitting ─────────────────────────────────────
+cat("\n--- Schoenfeld Residual Test (PH Assumption) ---\n")
+# Fit simple Cox first for PH test
+cox_test_vars <- c("adherence", "cd4cat", "whohivdiseasestage",
+                   "haartduringpregnancy", "durationofbfmonths_cat",
+                   "bwt_cat", "sexofthebaby", "syphillis", "tmembraner_cat")
 
+cox_ph_test_formula <- as.formula(
+  paste("surv_obj ~", paste(cox_test_vars, collapse = " + "))
+)
 
+cox_ph_test_model <- coxph(cox_ph_test_formula, data = df)
+ph_test <- cox.zph(cox_ph_test_model)
+print(ph_test)
+cat("\nIf p > 0.05 for each variable, PH assumption holds.\n")
+
+# ── 4b. Univariable Cox regression ────────────────────────────────────────────
+all_cox_vars <- c(maternal_vars, infant_vars)
+
+tbl_cox_univ <- df %>%
+  select(all_of(c(all_cox_vars, "surv_time", "surv_event"))) %>%
+  tbl_uvregression(
+    method       = coxph,
+    y            = Surv(surv_time, surv_event),
+    exponentiate = TRUE,
+    label        = list(
+      age_group                   ~ "Age Group",
+      educationlevel              ~ "Education Level",
+      maritalstatus               ~ "Marital Status",
+      residence                   ~ "Residence",
+      employmentstatus            ~ "Employment Status",
+      ancattendance               ~ "ANC Attendance",
+      ancvisits_cat               ~ "Number of ANC Visits",
+      haartduringpregnancy        ~ "HAART During Pregnancy",
+      adherence                   ~ "Adherence to HAART",
+      cd4cat                      ~ "CD4 Count (cells/mm³)",
+      whohivdiseasestage          ~ "WHO HIV Disease Stage",
+      hivstatusbeforepregnancy    ~ "HIV Status Before Pregnancy",
+      patnershivstatus            ~ "Partner HIV Status",
+      syphillis                   ~ "Syphilis",
+      historyofstiduringpregnancy ~ "History of STI During Pregnancy",
+      malaria                     ~ "Malaria",
+      anaemia                     ~ "Anaemia",
+      hypertention                ~ "Hypertension",
+      treatedduringpregnancy      ~ "Treated for STI During Pregnancy",
+      tmembraner_cat              ~ "Rupture of Membranes",
+      sexofthebaby                ~ "Sex of Infant",
+      bwt_cat                     ~ "Birth Weight Category",
+      durationofbfmonths_cat      ~ "Duration of Breastfeeding",
+      babywt6wks                  ~ "Infant Weight at 6 Weeks (kg)"
+    )
+  ) %>%
+  bold_p(t = 0.05) %>%
+  bold_labels() %>%
+  modify_caption("**Table 8: Univariable Cox Regression – All Factors**")
+
+print(tbl_cox_univ)
+
+# ── 4c. Final multivariable Cox PH model ──────────────────────────────────────
+# Include variables with clinical plausibility & p < 0.25 from univariable Cox
+cox_final_formula <- Surv(surv_time, surv_event) ~
+  adherence + cd4cat + whohivdiseasestage + haartduringpregnancy +
+  syphillis + historyofstiduringpregnancy + patnershivstatus +
+  durationofbfmonths_cat + bwt_cat + sexofthebaby + tmembraner_cat
+
+cox_final_model <- coxph(cox_final_formula, data = df, ties = "efron")
+cat("\n--- Final Cox PH Model Summary ---\n")
+print(summary(cox_final_model))
+
+# ── 4d. gtsummary table for final Cox model ───────────────────────────────────
+tbl_cox_final <- tbl_regression(
+  cox_final_model,
+  exponentiate = TRUE,
+  label = list(
+    adherence                   ~ "Adherence to HAART",
+    cd4cat                      ~ "CD4 Count (cells/mm³)",
+    whohivdiseasestage          ~ "WHO HIV Disease Stage",
+    haartduringpregnancy        ~ "HAART During Pregnancy",
+    syphillis                   ~ "Syphilis",
+    historyofstiduringpregnancy ~ "History of STI During Pregnancy",
+    patnershivstatus            ~ "Partner HIV Status",
+    durationofbfmonths_cat      ~ "Duration of Breastfeeding",
+    bwt_cat                     ~ "Birth Weight Category",
+    sexofthebaby                ~ "Sex of Infant",
+    tmembraner_cat              ~ "Rupture of Membranes"
+  )
+) %>%
+  bold_p(t = 0.05) %>%
+  bold_labels() %>%
+  modify_caption("**Table 9: Final Multivariable Cox PH Model – HIV-Free Survival**")
+
+print(tbl_cox_final)
+
+# ── 4e. Model diagnostics ─────────────────────────────────────────────────────
+cat("\n--- Cox PH Diagnostics ---\n")
+
+# Schoenfeld residuals for final model
+ph_final <- cox.zph(cox_final_model)
+cat("Global PH test p-value:", ph_final$table["GLOBAL", "p"], "\n")
+print(ph_final)
+
+# Plot Schoenfeld residuals
+par(mfrow = c(3, 4), mar = c(4, 4, 2, 1))
+plot(ph_final)
+par(mfrow = c(1, 1))
+
+# ── 4f. KM plots stratified by key predictors ─────────────────────────────────
+km_adherence <- survfit(surv_obj ~ adherence, data = df)
+p4a <- ggsurvplot(
+  km_adherence, data = df,
+  pval          = TRUE,
+  conf.int      = TRUE,
+  risk.table    = TRUE,
+  xlab          = "Follow-up Time (Weeks)",
+  ylab          = "HIV-Free Survival Probability",
+  title         = "Figure 6: HIV-Free Survival by HAART Adherence",
+  legend.title  = "Adherence",
+  palette       = c("#D73027", "#FEE090", "#4393C3"),
+  ggtheme       = theme_bw(base_size = 12)
+)
+print(p4a)
+
+km_bf <- survfit(surv_obj ~ durationofbfmonths_cat, data = df)
+p4b <- ggsurvplot(
+  km_bf, data = df,
+  pval          = TRUE,
+  conf.int      = FALSE,
+  risk.table    = TRUE,
+  xlab          = "Follow-up Time (Weeks)",
+  ylab          = "HIV-Free Survival Probability",
+  title         = "Figure 7: HIV-Free Survival by Duration of Breastfeeding",
+  legend.title  = "Breastfeeding Duration",
+  palette       = "jco",
+  ggtheme       = theme_bw(base_size = 12)
+)
+print(p4b)
+
+km_cd4 <- survfit(surv_obj ~ cd4cat, data = df)
+p4c <- ggsurvplot(
+  km_cd4, data = df,
+  pval          = TRUE,
+  conf.int      = FALSE,
+  risk.table    = TRUE,
+  xlab          = "Follow-up Time (Weeks)",
+  ylab          = "HIV-Free Survival Probability",
+  title         = "Figure 8: HIV-Free Survival by Maternal CD4 Count",
+  legend.title  = "CD4 Count",
+  palette       = "npg",
+  ggtheme       = theme_bw(base_size = 12)
+)
+print(p4c)
+
+# ── 4g. Forest plot for final Cox model ──────────────────────────────────────
+cox_tidy <- broom::tidy(cox_final_model, exponentiate = TRUE,
+                        conf.int = TRUE) %>%
+  filter(term != "(Intercept)") %>%
+  mutate(significant = ifelse(p.value < 0.05, "Significant (p<0.05)", "Not significant"))
+
+p4d <- ggplot(cox_tidy, aes(x = estimate, y = reorder(term, estimate),
+                            color = significant)) +
+  geom_point(size = 3) +
+  geom_errorbarh(aes(xmin = conf.low, xmax = conf.high), height = 0.25) +
+  geom_vline(xintercept = 1, linetype = "dashed", color = "gray40") +
+  scale_x_log10(labels = scales::number_format(accuracy = 0.01)) +
+  scale_color_manual(values = c("Significant (p<0.05)" = "#D73027",
+                                "Not significant" = "#4393C3")) +
+  labs(title = "Figure 9: Forest Plot – Final Cox PH Model\n(HIV-Free Survival)",
+       x = "Hazard Ratio (log scale, 95% CI)",
+       y = "",
+       color = "") +
+  theme_bw(base_size = 11) +
+  theme(legend.position = "bottom")
+
+print(p4d)
+
+# ── 4h. Model performance metrics ────────────────────────────────────────────
+cat("\n--- Model Performance ---\n")
+cat("Concordance (C-statistic):",
+    round(summary(cox_final_model)$concordance[1], 4),
+    "SE:", round(summary(cox_final_model)$concordance[2], 4), "\n")
+cat("Likelihood ratio test p-value:",
+    round(summary(cox_final_model)$logtest["pvalue"], 6), "\n")
+cat("Wald test p-value:",
+    round(summary(cox_final_model)$waldtest["pvalue"], 6), "\n")
+cat("Score (log-rank) test p-value:",
+    round(summary(cox_final_model)$sctest["pvalue"], 6), "\n")
+cat("AIC:", AIC(cox_final_model), "\n")
