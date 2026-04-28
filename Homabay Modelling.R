@@ -757,4 +757,24 @@ cat("Sub-county HIV rates:\n")
 print(sc_summary %>% select(subcounty, n, hiv_pos, hiv_rate) %>%
         arrange(desc(hiv_rate)))
 
+# ── 3. CONVERT POINTS TO SF OBJECTS ──────────────────────────────────────────
+pts_sf <- st_as_sf(df, coords = c("var52", "var51"), crs = 4326)
+sc_sf  <- st_as_sf(sc_summary, coords = c("lon", "lat"), crs = 4326)
+
+
+kenya_counties <- st_read("D:/Desktop/kenyan-counties/County.shp")
+
+plot(kenya_counties)
+
+#filtering homa bay
+
+homa_bay <- kenya_counties %>%
+  filter(COUNTY == "Homa Bay")
+
+
+ggplot(homa_bay) +
+  geom_sf(fill = "lightblue", color = "black") +
+  labs(title = "Homa Bay County") +
+  theme_minimal()
+
 
