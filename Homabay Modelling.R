@@ -12,7 +12,13 @@
 packages <- c("survival", "readxl", "tidyverse",
               "survminer", "finalfit", "gtsummary",
               "flextable", "officer", "car",
-              "broom", "scales", "patchwork", "gridExtra")
+              "broom", "scales", "patchwork", "gridExtra","sf", "ggplot2", "dplyr", "readr", "readxl", "RColorBrewer",
+              "viridis", "patchwork", "ggspatial", "leaflet", "leaflet.extras",
+              "htmlwidgets", "scales", "ggrepel", "tidyr", "KernSmooth",
+              "rnaturalearth", "rnaturalearthdata")
+
+
+
 
 # Install missing packages
 installed <- packages %in% installed.packages()[, "Package"]
@@ -708,4 +714,47 @@ tbl_cox_merged <- tbl_merge(
 print(tbl_cox_merged)
 
 #spatial analysis
+
+
+################################################################################
+#  SPATIAL MAPPING – HIV-EXPOSED INFANTS, HOMA BAY COUNTY
+#  Produces:
+#    1. Choropleth map of HIV positivity rate per sub-county
+#    2. Dot-density map of individual patient GPS points
+#    3. Kernel density (heatmap) of HIV-positive cases
+#    4. Faceted maps by adherence, CD4, breastfeeding duration
+#    5. Interactive leaflet map (HTML output)
+
+################################################################################
+
+# ── 2. SUB-COUNTY CENTROIDS (approximate, from data medians) ─────────────────
+subcounty_coords <- tribble(
+  ~subcounty,        ~lon,     ~lat,
+  "Homa Bay",       34.704,  -0.495,
+  "Kabondo Kasipul",34.475,  -0.527,
+  "Karachauony",    34.596,  -0.427,
+  "Kasipul",        34.481,  -0.628,
+  "Mbita",          34.210,  -0.461,
+  "Ndhiwa",         34.508,  -0.538,
+  "Ragwe",          34.535,  -0.506,
+  "Suba",           34.207,  -0.539
+)
+
+# Sub-county summary statistics
+sc_summary <- df %>%
+  group_by(subcounty) %>%
+  summarise(
+    n          = n(),
+    hiv_pos    = sum(hiv_positive),
+    hiv_rate   = mean(hiv_positive) * 100,
+    median_age = median(age, na.rm = TRUE),
+    good_adherence_pct = mean(adherence == "good", na.rm = TRUE) * 100,
+    .groups    = "drop"
+  ) %>%
+  left_join(subcounty_coords, by = "subcounty")
+
+cat("Sub-county HIV rates:\n")
+print(sc_summary %>% select(subcounty, n, hiv_pos, hiv_rate) %>%
+        arrange(desc(hiv_rate)))
+
 
