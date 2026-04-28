@@ -762,14 +762,14 @@ pts_sf <- st_as_sf(df, coords = c("var52", "var51"), crs = 4326)
 sc_sf  <- st_as_sf(sc_summary, coords = c("lon", "lat"), crs = 4326)
 
 
-kenya_counties <- st_read("D:/Desktop/kenyan-counties/County.shp")
+kenya_counties <- st_read("D:/Desktop/Kenya_Wards/kenya_wards.shp")
 
 plot(kenya_counties)
 
 #filtering homa bay
 
 homa_bay <- kenya_counties %>%
-  filter(COUNTY == "Homa Bay")
+  filter(county == "Homa Bay")
 
 
 ggplot(homa_bay) +
@@ -778,3 +778,74 @@ ggplot(homa_bay) +
   theme_minimal()
 
 
+library(ggplot2)
+library(dplyr)
+library(ggrepel)
+library(ggspatial)
+
+# ── Ensure CRS matches (VERY IMPORTANT) ──────────────────────
+homa_bay <- st_transform(homa_bay, crs = 4326)
+
+# ── 5A. BUBBLE MAP ───────────────────────────────────────────
+p_bubble <- ggplot() +
+  
+  # Background: Homa Bay County
+  geom_sf(data = homa_bay, fill = "#f0f0f0",
+          color = "black", linewidth = 0.5) +
+  
+  # All patient points (light grey)
+  geom_point(data = df,
+             aes(x = var52, y = var51),
+             color = "#b0b8c1", size = 0.8, alpha = 0.4) +
+  
+  # HIV-positive patients (red)
+  geom_point(data = df %>% filter(hiv_positive == 1),
+             aes(x = var52, y = var51),
+             color = "#E63946", size = 2.5, alpha = 0.85) +
+  
+  # Bubble per sub-county
+  geom_point(data = sc_summary,
+             aes(x = lon, y = lat, size = n, fill = hiv_rate),
+             shape = 21, color = "white", stroke = 1.2, alpha = 0.85) +
+  
+  # Labels
+  geom_text_repel(data = sc_summary,
+                  aes(x = lon, y = lat,
+                      label = paste0(subcounty, "\n",
+                                     round(hiv_rate, 1), "%")),
+                  size = 3, fontface = "bold",
+                  color = "#1d3557") +
+  
+  # Scales
+  scale_fill_viridis_c(name = "HIV Positivity (%)",
+                       option = "plasma", direction = -1) +
+  
+  scale_size_continuous(name = "Patients (n)",
+                        range = c(4, 15)) +
+  
+  # Map extent (optional but OK)
+  coord_sf(xlim = c(33.9, 35.0),
+           ylim = c(-1.1, 0.0)) +
+  
+  # Map elements
+  annotation_scale(location = "bl", width_hint = 0.3) +
+  annotation_north_arrow(location = "tr",
+                         which_north = "true",
+                         style = north_arrow_fancy_orienteering()) +
+  
+  # Labels
+  labs(
+    title = "HIV Positivity Among Exposed Infants — Homa Bay County",
+    subtitle = "Bubble size = sample size; colour = HIV positivity rate (%)",
+    caption = "Data: Homa Bay PMTCT Programme",
+    x = "Longitude", y = "Latitude"
+  ) +
+  
+  theme_bw(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "right"
+  )
+
+# ── Plot ─────────────────────────────────────────────────────
+print(p_bubble)
