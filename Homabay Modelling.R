@@ -849,3 +849,98 @@ p_bubble <- ggplot() +
 
 # ── Plot ─────────────────────────────────────────────────────
 print(p_bubble)
+
+
+
+library(dplyr)
+library(ggplot2)
+library(ggrepel)
+library(ggspatial)
+library(KernSmooth)
+library(sf)
+
+# ── Ensure CRS is correct ─────────────────────────────
+homa_bay <- st_transform(homa_bay, crs = 4326)
+
+# ── Filter HIV-positive cases ─────────────────────────
+hiv_pts <- df %>%
+  filter(hiv_positive == 1,
+         !is.na(var52),
+         !is.na(var51))
+
+# ── Kernel density estimation ─────────────────────────
+bw <- c(bandwidth.nrd(hiv_pts$var52),
+        bandwidth.nrd(hiv_pts$var51))
+
+dens <- bkde2D(
+  cbind(hiv_pts$longitude, hiv_pts$latitude),
+  bandwidth = bw * 1.5,
+  gridsize = c(150, 150)
+)
+
+# Convert to dataframe
+dens_df <- expand.grid(lon = dens$x1, lat = dens$x2) %>%
+  mutate(density = as.vector(dens$fhat))
+
+# ── Plot ──────────────────────────────────────────────
+p_heat <- ggplot() +
+  
+  # Background: Homa Bay
+  geom_sf(data = homa_bay, fill = "#1a1a2e",
+          color = "#444", linewidth = 0.4) +
+  
+  # Density layer
+  geom_tile(data = dens_df,
+            aes(x = lon, y = lat, fill = density),
+            alpha = 0.85) +
+  
+  # Color scale
+  scale_fill_gradientn(
+    colors = c("transparent", "#03045e", "#0077b6", "#00b4d8",
+               "#90e0ef", "#ffd166", "#ef233c"),
+    name = "Case Density"
+  ) +
+  
+  # HIV-positive points
+  geom_point(data = hiv_pts,
+             aes(x = longitude, y = latitude),
+             color = "white", size = 1.5, alpha = 0.9, shape = 3) +
+  
+  # Subcounty labels
+  geom_text_repel(data = sc_summary,
+                  aes(x = lon, y = lat, label = subcounty),
+                  color = "white", size = 3, fontface = "bold") +
+  
+  # Map extent
+  coord_sf(xlim = c(33.9, 35.0),
+           ylim = c(-1.1, 0.0)) +
+  
+  # Map elements
+  annotation_scale(location = "bl", width_hint = 0.25,
+                   text_col = "white", line_col = "white") +
+  
+  annotation_north_arrow(location = "tr",
+                         which_north = "true",
+                         style = north_arrow_minimal(
+                           line_col = "white",
+                           text_col = "white"
+                         )) +
+  
+  # Labels
+  labs(
+    title = "Spatial Density of HIV-Positive Infant Cases",
+    subtitle = "Kernel density of confirmed HIV-positive cases",
+    caption = "Data: Homa Bay PMTCT Programme",
+    x = "Longitude", y = "Latitude"
+  ) +
+  
+  # Theme
+  theme_dark(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", color = "white"),
+    plot.background = element_rect(fill = "#1a1a2e"),
+    panel.background = element_rect(fill = "#1a1a2e")
+  )
+
+# ── Plot ──────────────────────────────────────────────
+print(p_heat)
