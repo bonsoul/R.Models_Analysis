@@ -944,3 +944,33 @@ p_heat <- ggplot() +
 
 # ── Plot ──────────────────────────────────────────────
 print(p_heat)
+
+
+# ── 5C. FACETED DOT MAP BY HAART ADHERENCE ───────────────────────────────────
+p_adherence <- ggplot() +
+  geom_point(data = df,
+             aes(x = longitude, y = latitude, color = hiv_status),
+             size = 1.5, alpha = 0.7) +
+  facet_wrap(~ adherence, ncol = 3,
+             labeller = labeller(adherence = c(poor = "Poor Adherence",
+                                               fair = "Fair Adherence",
+                                               good = "Good Adherence"))) +
+  scale_color_manual(values = c("HIV Negative" = "#457b9d",
+                                "HIV Positive" = "#E63946"),
+                     name = "Infant HIV Status") +
+  coord_cartesian(xlim = c(33.9, 35.0), ylim = c(-1.1, 0.0)) +
+  labs(
+    title    = "Geographic Distribution by Maternal HAART Adherence",
+    subtitle = "Each point = one HIV-exposed infant | Red = HIV positive",
+    x = "Longitude", y = "Latitude",
+    caption  = "Data: Homa Bay County PMTCT Programme"
+  ) +
+  theme_bw(base_size = 11) +
+  theme(plot.title      = element_text(face = "bold"),
+        strip.background= element_rect(fill = "#1d3557"),
+        strip.text      = element_text(color = "white", face = "bold"),
+        legend.position = "bottom")
+
+print(p_adherence)
+ggsave("Map3_Adherence_Faceted.png", p_adherence, width = 13, height = 6, dpi = 300)
+cat("Saved: Map3_Adherence_Faceted.png\n")
