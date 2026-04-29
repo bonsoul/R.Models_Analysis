@@ -949,7 +949,7 @@ print(p_heat)
 # ── 5C. FACETED DOT MAP BY HAART ADHERENCE ───────────────────────────────────
 p_adherence <- ggplot() +
   geom_point(data = df,
-             aes(x = longitude, y = latitude, color = hiv_status),
+             aes(x = var52, y = var51, color = monthsantibodytest),
              size = 1.5, alpha = 0.7) +
   facet_wrap(~ adherence, ncol = 3,
              labeller = labeller(adherence = c(poor = "Poor Adherence",
@@ -972,5 +972,3 @@ p_adherence <- ggplot() +
         legend.position = "bottom")
 
 print(p_adherence)
-ggsave("Map3_Adherence_Faceted.png", p_adherence, width = 13, height = 6, dpi = 300)
-cat("Saved: Map3_Adherence_Faceted.png\n")
