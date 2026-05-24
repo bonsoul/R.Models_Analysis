@@ -30,3 +30,26 @@ Wage |> freq_table(jobclass, education)
 
 table(Wage$education, Wage$jobclass) |>
   prop.table(margin = 2)
+
+
+##Identify Outliers
+
+
+library(ggstatsplot)
+
+
+
+
+ggbetweenstats(
+  data = airquality,
+  x = Month,,
+  y = Ozone,
+  type = "np",
+  pairwise.display = "none",
+  results.subtitle = F
+)
+
+
+airquality |>
+  group_by(Month) |>
+  identify_outliers(Ozone)
