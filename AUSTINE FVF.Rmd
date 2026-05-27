@@ -17,6 +17,9 @@ library(readr)
 library(dplyr)
 library(ggplot2)
 library(patchwork)
+library(gtsummary)
+library(stringr)
+
 ```
 
 
@@ -441,7 +444,224 @@ wrap_plots(plots_practice, ncol = 2) +
 ```
 
 ```{r}
+table1 <- df2 %>%
+  select(gender, age_group, education_level, monthly_income_ksh,
+         farming_system, respondent_type, role,
+         hh_size, hh_adults, hh_children) %>%
+  tbl_summary(
+    label = list(
+      gender             ~ "Gender",
+      age_group          ~ "Age Group",
+      education_level    ~ "Education Level",
+      monthly_income_ksh ~ "Monthly Income (Ksh)",
+      farming_system     ~ "Farming System",
+      respondent_type    ~ "Respondent Type",
+      role               ~ "Role/Capacity",
+      hh_size            ~ "Household Size",
+      hh_adults          ~ "Number of Adults",
+      hh_children        ~ "Number of Children"
+    ),
+    statistic = list(
+      all_continuous()  ~ "{mean} ({sd})",
+      all_categorical() ~ "{n} ({p}%)"
+    ),
+    digits = list(
+      all_continuous()  ~ 1,
+      all_categorical() ~ c(0, 1)
+    ),
+    missing      = "ifany",
+    missing_text = "Missing"
+  ) %>%
+  bold_labels() %>%
+  italicize_levels() %>%
+  modify_header(label ~ "**Characteristic**") %>%
+  modify_caption(
+    "**Table 1. Socio-demographic Characteristics of Respondents (N = {N})**"
+  ) %>%
+  modify_footnote(
+    all_stat_cols() ~ "n (%); Mean (SD)"
+  )
+```
+
+```{r}
+df2 %>%
+  select(gender, age_group, education_level, monthly_income_ksh,
+         farming_system, respondent_type, role,
+         hh_size, hh_adults, hh_children) %>%
+  tbl_summary(
+    label = list(
+      gender             ~ "Gender",
+      age_group          ~ "Age Group",
+      education_level    ~ "Education Level",
+      monthly_income_ksh ~ "Monthly Income (Ksh)",
+      farming_system     ~ "Farming System",
+      respondent_type    ~ "Respondent Type",
+      role               ~ "Role/Capacity",
+      hh_size            ~ "Household Size",
+      hh_adults          ~ "Number of Adults",
+      hh_children        ~ "Number of Children"
+    ),
+    statistic = list(
+      all_continuous()  ~ "{mean} ({sd})",
+      all_categorical() ~ "{n} ({p}%)"
+    ),
+    digits = list(
+      all_continuous()  ~ 1,
+      all_categorical() ~ c(0, 1)
+    ),
+    missing      = "ifany",
+    missing_text = "Missing"
+  ) %>%
+  bold_labels() %>%
+  italicize_levels() %>%
+  modify_header(label ~ "**Characteristic**") %>%
+  modify_caption(
+    "**Table 1. Socio-demographic Characteristics of Respondents (N = {N})**"
+  ) %>%
+  modify_footnote(
+    all_stat_cols() ~ "n (%); Mean (SD)"
+  )
 
 ```
 
+```{r}
+df2 %>%
+  select(heard_of_rvf, rvf_affects_humans, rvf_vaccine_available,
+         rvf_worry_season, rvf_affected_animals) %>%
+  tbl_summary(
+    label = list(
+      heard_of_rvf          ~ "Ever heard of Rift Valley Fever",
+      rvf_affects_humans    ~ "Knows RVF can affect humans",
+      rvf_vaccine_available ~ "Aware that RVF vaccine exists for livestock",
+      rvf_worry_season      ~ "Season of concern for RVF",
+      rvf_affected_animals  ~ "Animals known to be affected by RVF"
+    ),
+    statistic = all_categorical() ~ "{n} ({p}%)",
+    digits    = all_categorical() ~ c(0, 1),
+    missing   = "ifany",
+    missing_text = "Missing"
+  ) %>%
+  bold_labels() %>%
+  italicize_levels() %>%
+  modify_header(label ~ "**Characteristic**") %>%
+  modify_caption("**Table 2. Knowledge about Rift Valley Fever (N = {N})**") %>%
+  modify_footnote(all_stat_cols() ~ "n (%)")
+
+```
+
+
+```{r}
+
+
+transmit_animal_items <- c(
+  "Mosquito bites",
+  "Contact with abortus in pasture",
+  "Contact with infected animals",
+  "Drinking water contaminated by infected animals",
+  "Contact with wildlife",
+  "Direct contact with discharge from infected animals"
+)
+
+transmit_human_items <- c(
+  "Mosquito bites",
+  "Contact with blood or body fluids of infected animals",
+  "Eating uncooked or undercooked meat from infected animals",
+  "Touching aborted animal fetus/Assisting animal in giving birth",
+  "Drinking raw milk from infected animals"
+)
+
+# ---------------------------
+# 2. Create binary indicators
+# ---------------------------
+
+df2 <- df2 %>%
+  mutate(
+    # Animal transmission indicators
+    across(
+      all_of(transmit_animal_items),
+      ~ as.integer(str_detect(rvf_transmit_animals, fixed(.x))),
+      .names = "anim_{.col}"
+    ),
+
+    # Human transmission indicators
+    across(
+      all_of(transmit_human_items),
+      ~ as.integer(str_detect(rvf_transmit_humans, fixed(.x))),
+      .names = "hum_{.col}"
+    )
+  )
+
+# Fix column names (important because across creates weird names)
+names(df2) <- make.names(names(df2))
+
+# ---------------------------
+# 3. Identify created columns
+# ---------------------------
+
+anim_cols <- grep("^anim_", names(df2), value = TRUE)
+hum_cols  <- grep("^hum_", names(df2), value = TRUE)
+
+# ---------------------------
+# 4. Compute scores
+# ---------------------------
+
+df2$animal_knowledge_score <- rowSums(df2[, anim_cols], na.rm = TRUE)
+df2$human_knowledge_score  <- rowSums(df2[, hum_cols], na.rm = TRUE)
+
+df2$total_knowledge_score <-
+  df2$animal_knowledge_score + df2$human_knowledge_score
+
+# ---------------------------
+# 5. Convert to percentages
+# ---------------------------
+
+max_animal <- length(transmit_animal_items)
+max_human  <- length(transmit_human_items)
+max_total  <- max_animal + max_human
+
+df2$animal_knowledge_pct <-
+  (df2$animal_knowledge_score / max_animal) * 100
+
+df2$human_knowledge_pct <-
+  (df2$human_knowledge_score / max_human) * 100
+
+df2$total_knowledge_pct <-
+  (df2$total_knowledge_score / max_total) * 100
+
+# ---------------------------
+# 6. Categorize knowledge level
+# ---------------------------
+
+df2$knowledge_level <- cut(
+  df2$total_knowledge_pct,
+  breaks = c(-Inf, 50, 75, Inf),
+  labels = c("Poor", "Moderate", "Good")
+)
+
+# ---------------------------
+# 7. Summary table (gtsummary)
+# ---------------------------
+
+kap_table <- df2 %>%
+  select(
+    animal_knowledge_pct,
+    human_knowledge_pct,
+    total_knowledge_pct,
+    knowledge_level
+  ) %>%
+  tbl_summary(
+    statistic = list(
+      all_continuous() ~ "{mean} ({sd})",
+      all_categorical() ~ "{n} ({p}%)"
+    ),
+    digits = all_continuous() ~ 1,
+    missing = "ifany"
+  ) %>%
+  bold_labels() %>%
+  modify_header(label ~ "**Knowledge Indicators**") %>%
+  modify_caption(
+    "**Table: Rift Valley Fever Knowledge Scores Among Respondents**"
+  )
+
+```
 
