@@ -23,7 +23,7 @@ library(stringr)
 ```
 
 
-```{r}
+```{r, loading data}
 
 data <- read_csv(
   "D:/Downloads/RVF KAP Survey_Wajir_Excel cleaned data.csv",
@@ -32,19 +32,19 @@ data <- read_csv(
 ```
 
 
-```{r}
+```{r, data cleaning and validation}
 df1 <- data %>%
-  # ── Drop metadata / system columns ──────────────────────────────────────────
+  #drop meta data/columns
   select(-matches("^meta/|^_|instanceID")) %>%
 
-  # ── Drop redundant binary sub-columns (keep parent select-all columns) ──────
+  #drop redundant columns
   select(-matches("^livestock_owned/|^learn_source/|^transmit_animals/|
                    ^affected_animals/|^transmit_humans/|
                    ^signs_and_symptoms_animals/|^signs_and_symptoms_humans/")) %>%
 
-  # ── Rename remaining columns to clean snake_case ─────────────────────────────
+  #rename the columns
   rename(
-    consent                  = 1,   # long consent text
+    consent                  = 1, 
     interview_date           = `Date of Interview`,
     interviewer_name         = `Name of Interviewer`,
     subcounty                = `Sub-county`,
@@ -105,7 +105,7 @@ df1 <- data %>%
 ```
 
 
-```{r}
+```{r, null percentage}
 null_pct <- data.frame(
   column = names(df1),
   pct_missing = round(colMeans(is.na(df1)) * 100, 1)
@@ -113,19 +113,18 @@ null_pct <- data.frame(
   arrange(desc(pct_missing))
 
 print(null_pct)
+
 ```
 
-```{r}
-
-
+```{r, visual for nulls}
 # Calculate missingness
 null_pct <- data.frame(
   column     = names(df1),
   pct_missing = round(colMeans(is.na(df1)) * 100, 1)
 ) %>%
-  filter(pct_missing > 0) %>%                        # only columns with missing data
+  filter(pct_missing > 0) %>% 
   arrange(pct_missing) %>%
-  mutate(column = factor(column, levels = column))   # preserve sort order
+  mutate(column = factor(column, levels = column))  
 
 # Plot
 ggplot(null_pct, aes(x = pct_missing, y = column)) +
@@ -155,13 +154,7 @@ ggplot(null_pct, aes(x = pct_missing, y = column)) +
 ```
 
 
-```{r}
-str(df1)
-
-```
-
-
-```{r}
+```{r, checking dtypes}
 df2 <- df1 %>%
   mutate(
 
@@ -214,7 +207,7 @@ df2 <- df1 %>%
                   levels = c("Not concerned", "Somewhat concerned",
                              "Very concerned", "Extremely concerned",
                              "I don't know"),
-                  ordered = FALSE),   # has "I don't know" so keep nominal
+                  ordered = FALSE),  
 
     vaccine_effectiveness = factor(vaccine_effectiveness,
                   levels = c("Not effective", "Somewhat effective",
@@ -242,10 +235,24 @@ df2 <- df1 %>%
 
 ```
 
-```{r}
-glimpse(df2)
+```{r, transmission binary indicators}
+
+# Animal transmission binary indicators 
+for (item in transmit_animal_items) {
+  col_name <- paste0("anim_", str_replace_all(item, " ", "_"))
+  df2[[col_name]] <- as.integer(str_detect(df2$rvf_transmit_animals, fixed(item)))
+}
+
+# Human transmission binary
+for (item in transmit_human_items) {
+  col_name <- paste0("hum_", str_replace_all(item, " ", "_"))
+  df2[[col_name]] <- as.integer(str_detect(df2$rvf_transmit_humans, fixed(item)))
+}
+
+df2 %>% select(starts_with("anim_"), starts_with("hum_")) %>% glimpse()
 
 ```
+
 
 
 ```{r,gender}
@@ -366,16 +373,25 @@ df2 %>%
 
 ```{r, worried season}
 df2 %>%
-  count(rvf_worry_season) %>% mutate(pct = n/sum(n)*100) %>%
+  count(rvf_worry_season) %>%
+  mutate(pct = n / sum(n) * 100) %>%
   ggplot(aes(x = reorder(rvf_worry_season, pct), y = pct)) +
   geom_col(fill = "#F2CC8F", width = 0.6) +
-  geom_text(aes(label = paste0(round(pct,1),"%")), hjust = -0.1, size = 3.2) +
-  coord_flip() + scale_y_continuous(limits = c(0,80)) +
-  labs(title = "Season of Concern for RVF", x = NULL, y = "%") + theme_minimal()
+  geom_text(aes(label = paste0(round(pct, 1), "%")), hjust = -0.1, size = 3.2) +
+  coord_flip() +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  labs(
+    title    = "Season of Concern for RVF",
+    subtitle = "Knowledge about RVF",
+    x        = NULL,
+    y        = "%"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title    = element_text(face = "bold", size = 13),
+    plot.subtitle = element_text(color = "grey50", size = 10)
+  )
 
-(p_heard | p_human) / p_source / p_season +
-  plot_annotation(title = "Section 2: Knowledge about RVF",
-                  theme = theme(plot.title = element_text(face = "bold", size = 14)))
 ```
 
 ```{r, attitudes}
@@ -406,6 +422,11 @@ plots_attitude <- lapply(attitude_vars, function(var) {
 wrap_plots(plots_attitude, ncol = 2) +
   plot_annotation(title = "Attitudes toward RVF",
                   theme = theme(plot.title = element_text(face = "bold", size = 14)))
+
+```
+
+
+```{r}
 
 ```
 
