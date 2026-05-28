@@ -249,10 +249,12 @@ for (item in transmit_human_items) {
   df2[[col_name]] <- as.integer(str_detect(df2$rvf_transmit_humans, fixed(item)))
 }
 
-df2 %>% select(starts_with("anim_"), starts_with("hum_")) %>% glimpse()
-
 ```
 
+
+```{r}
+df2 %>% select(starts_with("anim_"), starts_with("hum_")) %>% glimpse()
+```
 
 
 ```{r,gender}
@@ -426,10 +428,6 @@ wrap_plots(plots_attitude, ncol = 2) +
 ```
 
 
-```{r}
-
-```
-
 ```{r, practises}
 practice_vars <- c("vaccinates_livestock", "mosquito_control_freq",
                    "avoids_sick_animals", "avoids_abortus",
@@ -464,47 +462,13 @@ wrap_plots(plots_practice, ncol = 2) +
 
 ```
 
-```{r}
-table1 <- df2 %>%
-  select(gender, age_group, education_level, monthly_income_ksh,
-         farming_system, respondent_type, role,
-         hh_size, hh_adults, hh_children) %>%
-  tbl_summary(
-    label = list(
-      gender             ~ "Gender",
-      age_group          ~ "Age Group",
-      education_level    ~ "Education Level",
-      monthly_income_ksh ~ "Monthly Income (Ksh)",
-      farming_system     ~ "Farming System",
-      respondent_type    ~ "Respondent Type",
-      role               ~ "Role/Capacity",
-      hh_size            ~ "Household Size",
-      hh_adults          ~ "Number of Adults",
-      hh_children        ~ "Number of Children"
-    ),
-    statistic = list(
-      all_continuous()  ~ "{mean} ({sd})",
-      all_categorical() ~ "{n} ({p}%)"
-    ),
-    digits = list(
-      all_continuous()  ~ 1,
-      all_categorical() ~ c(0, 1)
-    ),
-    missing      = "ifany",
-    missing_text = "Missing"
-  ) %>%
-  bold_labels() %>%
-  italicize_levels() %>%
-  modify_header(label ~ "**Characteristic**") %>%
-  modify_caption(
-    "**Table 1. Socio-demographic Characteristics of Respondents (N = {N})**"
-  ) %>%
-  modify_footnote(
-    all_stat_cols() ~ "n (%); Mean (SD)"
-  )
-```
 
-```{r}
+
+
+
+##Tables for thesis
+
+```{r,Table 1. Socio-demographic Characteristics of Respondents}
 df2 %>%
   select(gender, age_group, education_level, monthly_income_ksh,
          farming_system, respondent_type, role,
@@ -545,7 +509,7 @@ df2 %>%
 
 ```
 
-```{r}
+```{r, Table 2. Knowledge about Rift Valley Fever}
 df2 %>%
   select(heard_of_rvf, rvf_affects_humans, rvf_vaccine_available,
          rvf_worry_season, rvf_affected_animals) %>%
@@ -571,118 +535,123 @@ df2 %>%
 ```
 
 
-```{r}
 
+```{r,Table 3. Knowledge of Rift Valley Fever Transmission Routes}
+table3 <- df2 %>%
 
-transmit_animal_items <- c(
-  "Mosquito bites",
-  "Contact with abortus in pasture",
-  "Contact with infected animals",
-  "Drinking water contaminated by infected animals",
-  "Contact with wildlife",
-  "Direct contact with discharge from infected animals"
-)
+  # Select variables
+  select(starts_with("anim_"), starts_with("hum_")) %>%
 
-transmit_human_items <- c(
-  "Mosquito bites",
-  "Contact with blood or body fluids of infected animals",
-  "Eating uncooked or undercooked meat from infected animals",
-  "Touching aborted animal fetus/Assisting animal in giving birth",
-  "Drinking raw milk from infected animals"
-)
+  # Create summary table
+  tbl_summary(
 
-# ---------------------------
-# 2. Create binary indicators
-# ---------------------------
+    type = all_categorical() ~ "categorical",
 
-df2 <- df2 %>%
-  mutate(
-    # Animal transmission indicators
-    across(
-      all_of(transmit_animal_items),
-      ~ as.integer(str_detect(rvf_transmit_animals, fixed(.x))),
-      .names = "anim_{.col}"
+    label = list(
+
+      # Animal transmission
+      anim_Mosquito_bites ~
+        "Mosquito bites",
+
+      anim_Contact_with_abortus_in_pasture ~
+        "Contact with abortus in pasture",
+
+      anim_Contact_with_infected_animals ~
+        "Contact with infected animals",
+
+      anim_Drinking_water_contaminated_by_infected_animals ~
+        "Drinking contaminated water",
+
+      anim_Contact_with_wildlife ~
+        "Contact with wildlife",
+
+      anim_Direct_contact_with_discharge_from_infected_animals ~
+        "Direct contact with infected animal discharge",
+
+      # Human transmission
+      hum_Mosquito_bites ~
+        "Mosquito bites",
+
+      hum_Contact_with_blood_or_body_fluids_of_infected_animals ~
+        "Contact with blood/body fluids of infected animals",
+
+      hum_Eating_uncooked_or_undercooked_meat_from_infected_animals ~
+        "Eating undercooked meat from infected animals",
+
+      `hum_Touching_aborted_animal_fetus/Assisting_animal_in_giving_birth` ~
+        "Touching aborted fetus/assisting birth",
+
+      hum_Drinking_raw_milk_from_infected_animals ~
+        "Drinking raw milk from infected animals"
     ),
 
-    # Human transmission indicators
-    across(
-      all_of(transmit_human_items),
-      ~ as.integer(str_detect(rvf_transmit_humans, fixed(.x))),
-      .names = "hum_{.col}"
+    statistic = all_categorical() ~ "{n} ({p}%)",
+
+    digits = all_categorical() ~ c(0, 1),
+
+    missing = "no"
+  ) %>%
+
+  # Keep only YES rows
+  modify_table_body(
+    ~ .x %>%
+      filter(row_type != "level" | label == "1") %>%
+      mutate(
+        label = ifelse(label == "1", "", label)
+      )
+  ) %>%
+
+  # Styling
+  bold_labels() %>%
+  italicize_levels() %>%
+
+  modify_header(
+    label ~ "**Route of Transmission**",
+    stat_0 ~ "**n (%)**"
+  ) %>%
+
+  modify_caption(
+    "**Table 3. Knowledge of Rift Valley Fever Transmission Routes (N = {N})**"
+  )
+
+table3
+```
+
+
+
+
+```{r, table 4 knowledge category}
+
+# 6. Knowledge categorization 
+
+df3 <- df2 %>%
+  mutate(
+    knowledge_level = case_when(
+      total_knowledge_pct < 50 ~ "Poor",
+      total_knowledge_pct < 75 ~ "Moderate",
+      TRUE ~ "Good"
     )
   )
 
-# Fix column names (important because across creates weird names)
-names(df2) <- make.names(names(df2))
-
-# ---------------------------
-# 3. Identify created columns
-# ---------------------------
-
-anim_cols <- grep("^anim_", names(df2), value = TRUE)
-hum_cols  <- grep("^hum_", names(df2), value = TRUE)
-
-# ---------------------------
-# 4. Compute scores
-# ---------------------------
-
-df2$animal_knowledge_score <- rowSums(df2[, anim_cols], na.rm = TRUE)
-df2$human_knowledge_score  <- rowSums(df2[, hum_cols], na.rm = TRUE)
-
-df2$total_knowledge_score <-
-  df2$animal_knowledge_score + df2$human_knowledge_score
-
-# ---------------------------
-# 5. Convert to percentages
-# ---------------------------
-
-max_animal <- length(transmit_animal_items)
-max_human  <- length(transmit_human_items)
-max_total  <- max_animal + max_human
-
-df2$animal_knowledge_pct <-
-  (df2$animal_knowledge_score / max_animal) * 100
-
-df2$human_knowledge_pct <-
-  (df2$human_knowledge_score / max_human) * 100
-
-df2$total_knowledge_pct <-
-  (df2$total_knowledge_score / max_total) * 100
-
-# ---------------------------
-# 6. Categorize knowledge level
-# ---------------------------
-
-df2$knowledge_level <- cut(
-  df2$total_knowledge_pct,
-  breaks = c(-Inf, 50, 75, Inf),
-  labels = c("Poor", "Moderate", "Good")
-)
-
-# ---------------------------
-# 7. Summary table (gtsummary)
-# ---------------------------
-
-kap_table <- df2 %>%
+kap_table <- df3 %>%
   select(
-    animal_knowledge_pct,
-    human_knowledge_pct,
-    total_knowledge_pct,
     knowledge_level
   ) %>%
   tbl_summary(
     statistic = list(
-      all_continuous() ~ "{mean} ({sd})",
+      all_continuous() ~ "{mean} ± {sd}",
       all_categorical() ~ "{n} ({p}%)"
     ),
     digits = all_continuous() ~ 1,
-    missing = "ifany"
+    missing = "no"
   ) %>%
   bold_labels() %>%
   modify_header(label ~ "**Knowledge Indicators**") %>%
   modify_caption(
-    "**Table: Rift Valley Fever Knowledge Scores Among Respondents**"
+    "**Table 4: Rift Valley Fever Knowledge Scores Among Respondents**"
   )
+
+kap_table
 
 ```
 
