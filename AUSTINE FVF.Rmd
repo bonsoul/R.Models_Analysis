@@ -19,14 +19,17 @@ library(ggplot2)
 library(patchwork)
 library(gtsummary)
 library(stringr)
+library(scales)
 
 ```
+
+
 
 
 ```{r, loading data}
 
 data <- read_csv(
-  "D:/Downloads/RVF KAP Survey_Wajir_Excel cleaned data.csv",
+  "Datasets/RVF KAP Survey_CSV.csv",
   locale = locale(encoding = "Windows-1252")
 )
 ```
@@ -104,6 +107,31 @@ df1 <- data %>%
   )
 ```
 
+```{r, manipulation}
+df1$age_group <- recode(
+  df1$age_group,
+  "18â€“24" = "18–24",
+  "25â€“34" = "25–34",
+  "35â€“44" = "35–44",
+  "45â€“54" = "45–54"
+)
+```
+
+```{r, refactoring}
+df1$age_group <- factor(
+  df1$age_group,
+  levels = c(
+    "18–24",
+    "25–34",
+    "35–44",
+    "45–54",
+    "55 and above"
+  ),
+  ordered = TRUE
+)
+```
+
+
 
 ```{r, null percentage}
 null_pct <- data.frame(
@@ -150,6 +178,17 @@ ggplot(null_pct, aes(x = pct_missing, y = column)) +
     panel.grid.major.y = element_blank(),
     panel.grid.minor   = element_blank(),
     axis.text.y     = element_text(size = 9)
+  )
+```
+
+
+```{r, dropping some columns}
+df1 <- df1 %>%
+  select(
+    -gps_raw,
+    -gps_altitude,
+    -gps_precision,
+    -rvf_affected_animals
   )
 ```
 
@@ -235,41 +274,63 @@ df2 <- df1 %>%
 
 ```
 
-```{r, transmission binary indicators}
 
-# Animal transmission binary indicators 
-for (item in transmit_animal_items) {
-  col_name <- paste0("anim_", str_replace_all(item, " ", "_"))
-  df2[[col_name]] <- as.integer(str_detect(df2$rvf_transmit_animals, fixed(item)))
-}
-
-# Human transmission binary
-for (item in transmit_human_items) {
-  col_name <- paste0("hum_", str_replace_all(item, " ", "_"))
-  df2[[col_name]] <- as.integer(str_detect(df2$rvf_transmit_humans, fixed(item)))
-}
-
-```
-
-
-```{r}
-df2 %>% select(starts_with("anim_"), starts_with("hum_")) %>% glimpse()
-```
-
-
-```{r,gender}
- df2 %>%
+```{r, gender}
+df2 %>%
   count(gender) %>%
   mutate(pct = n / sum(n) * 100) %>%
   ggplot(aes(x = reorder(gender, pct), y = pct, fill = gender)) +
   geom_col(width = 0.6, show.legend = FALSE) +
-  geom_text(aes(label = paste0(round(pct, 1), "%")), hjust = -0.1, size = 3.5) +
+  geom_text(
+    aes(label = paste0(n, " (", round(pct, 1), "%)")),
+    hjust = -0.1,
+    size = 3.5
+  ) +
   coord_flip() +
   scale_y_continuous(limits = c(0, 110)) +
   labs(title = "Gender Distribution", x = NULL, y = "%") +
   theme_minimal()
-
 ```
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(scales)
+
+df2 %>%
+  filter(!is.na(age_group)) %>%
+  count(age_group) %>%
+  mutate(
+    pct = 100 * n / sum(n),
+    label = paste0(n, "\n(", round(pct, 1), "%)")
+  ) %>%
+  ggplot(aes(x = age_group, y = pct, fill = age_group)) +
+  geom_col(width = 0.7, show.legend = FALSE) +
+  geom_text(
+    aes(label = label),
+    vjust = -0.3,
+    size = 3.5
+  ) +
+  scale_y_continuous(
+    labels = label_percent(scale = 1),
+    expand = expansion(mult = c(0, 0.15))
+  ) +
+  labs(
+    title = "Age Distribution of Respondents",
+    subtitle = paste("n =", sum(!is.na(df2$age_group))),
+    x = "Age Group",
+    y = "Percentage of Respondents"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 30, hjust = 1),
+    panel.grid.minor = element_blank()
+  )
+```
+
+
 
 ```{r, age_group}
 df2 %>%
@@ -301,26 +362,81 @@ df2 %>%
 
 
 ```{r,monthly_income_ksh}
+
 df2 %>%
+  filter(!is.na(monthly_income_ksh)) %>%
   count(monthly_income_ksh) %>%
-  mutate(pct = n / sum(n) * 100) %>%
-  ggplot(aes(x = monthly_income_ksh, y = pct)) +
-  geom_col(fill = "#E07A5F", width = 0.6) +
-  geom_text(aes(label = paste0(round(pct, 1), "%")), vjust = -0.4, size = 3.2) +
-  labs(title = "Monthly Income (Ksh)", x = NULL, y = "%") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 25, hjust = 1))
+  mutate(
+    pct = 100 * n / sum(n),
+    label = paste0(n, " (", round(pct, 1), "%)")
+  ) %>%
+  ggplot(aes(x = monthly_income_ksh, y = pct, fill = monthly_income_ksh)) +
+  geom_col(width = 0.7, show.legend = FALSE) +
+  geom_text(
+    aes(label = label),
+    vjust = -0.3,
+    size = 3.5
+  ) +
+  scale_y_continuous(
+    labels = label_percent(scale = 1),
+    expand = expansion(mult = c(0, 0.15))
+  ) +
+  labs(
+    title = "Monthly Income Distribution",
+    subtitle = paste("n =", sum(!is.na(df2$monthly_income_ksh))),
+    x = NULL,
+    y = "Percentage of Respondents"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 30, hjust = 1),
+    panel.grid.minor = element_blank()
+  )
 
 ```
 
 ```{r, Household size}
+
+median_hh <- median(df2$hh_size, na.rm = TRUE)
+mean_hh   <- mean(df2$hh_size, na.rm = TRUE)
+
 p_hhsize <- ggplot(df2, aes(x = hh_size)) +
-  geom_histogram(binwidth = 1, fill = "#3D405B", color = "white") +
-  geom_vline(aes(xintercept = median(hh_size, na.rm = TRUE)),
-             color = "red", linetype = "dashed") +
-  labs(title = "Household Size", subtitle = "Red line = median",
-       x = "No. of people", y = "Count") +
-  theme_minimal()
+  geom_histogram(
+    binwidth = 1,
+    fill = "#3D405B",
+    color = "white",
+    alpha = 0.9
+  ) +
+  geom_vline(
+    xintercept = median_hh,
+    color = "red",
+    linetype = "dashed",
+    linewidth = 1
+  ) +
+  geom_vline(
+    xintercept = mean_hh,
+    color = "blue",
+    linetype = "dotted",
+    linewidth = 1
+  ) +
+  labs(
+    title = "Household Size Distribution",
+    subtitle = paste0(
+      "Median = ", median_hh,
+      " | Mean = ", round(mean_hh, 1),
+      " (Red = median, Blue = mean)"
+    ),
+    x = "Household size (number of people)",
+    y = "Number of households"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
+
+p_hhsize
 
 ```
 
@@ -335,14 +451,32 @@ df2 %>%
   labs(title = "Heard of RVF?", x = NULL, y = "%") + theme_minimal()
 ```
 
-```{r}
+```{r, Knows RVF Affects Humans}
 df2 %>%
-  count(rvf_affects_humans) %>% mutate(pct = n/sum(n)*100) %>%
+  filter(!is.na(rvf_affects_humans)) %>%
+  count(rvf_affects_humans) %>%
+  mutate(
+    pct = 100 * n / sum(n),
+    label = paste0(n, " (", round(pct, 1), "%)")
+  ) %>%
   ggplot(aes(x = rvf_affects_humans, y = pct, fill = rvf_affects_humans)) +
-  geom_col(width = 0.5, show.legend = FALSE) +
-  geom_text(aes(label = paste0(round(pct,1),"%")), vjust = -0.4) +
-  scale_y_continuous(limits = c(0,115)) +
-  labs(title = "Knows RVF Affects Humans?", x = NULL, y = "%") + theme_minimal()
+  geom_col(width = 0.6, show.legend = FALSE) +
+  geom_text(aes(label = label), vjust = -0.3, size = 3.5) +
+  scale_y_continuous(
+    limits = c(0, 110),
+    expand = expansion(mult = c(0, 0.1)),
+    labels = label_percent(scale = 1)
+  ) +
+  labs(
+    title = "Knowledge that RVF Affects Humans",
+    x = NULL,
+    y = "Percentage"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
 
 ```
 
