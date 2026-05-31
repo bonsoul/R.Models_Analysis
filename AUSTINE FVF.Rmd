@@ -480,6 +480,14 @@ df2 %>%
 
 ```
 
+```{r}
+library(usethis)
+
+use_git_config(user.name = "bonsoul",
+               user.email = "bonsoul24@gmail.com.com")
+```
+
+
 ```{r, information sources}
 learn_sources <- c("Health professional", "Veterinary professional",
                    "Community volunteers", "Social media", "Posters",
