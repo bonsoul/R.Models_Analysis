@@ -802,7 +802,7 @@ rvf_full_table <- df2 %>%
     missing_text = "Missing"
   ) %>%
 
-  add_overall(last = TRUE) %>%  # optional overall column
+  add_overall(last = TRUE) %>%
 
   bold_labels() %>%
   italicize_levels() %>%
@@ -822,4 +822,78 @@ rvf_full_table <- df2 %>%
 rvf_full_table
 ```
 
+
+
+
+
+```{r, cattle affected mutation}
+
+animal_table <- df2 %>%
+  summarise(
+    Goats  = sum(`affected_animals/Goats` == "Goats", na.rm = TRUE),
+    Sheep  = sum(`affected_animals/Sheep` == "Sheep", na.rm = TRUE),
+    Camels = sum(`affected_animals/Camels` == "Camels", na.rm = TRUE),
+    Cattle = sum(`affected_animals/Cattle` == "Cattle", na.rm = TRUE),
+    `I don't know` = sum(`affected_animals/I don't know` == "I don't know", na.rm = TRUE)
+  ) %>%
+  
+  pivot_longer(
+    cols = everything(),
+    names_to = "Animal",
+    values_to = "n"
+  ) %>%
+  
+  mutate(
+    Percent = round(100 * n / nrow(df2), 1),
+    `n (%)` = paste0(n, " (", Percent, "%)")
+  ) %>%
+  
+  select(Animal, `n (%)`)
+
+animal_table
+```
+
+
+```{r, cattle affected}
+
+df2 %>%
+  select(
+    subcounty,
+    `affected_animals/Goats`,
+    `affected_animals/Sheep`,
+    `affected_animals/Camels`,
+    `affected_animals/Cattle`,
+    `affected_animals/I don't know`
+  ) %>%
+  
+  tbl_summary(
+    by = subcounty,
+    
+    statistic = all_categorical() ~ "{n}",
+    
+    missing = "ifany",
+    missing_text = "Missing",
+    
+    label = list(
+      `affected_animals/Goats` ~ "Goats",
+      `affected_animals/Sheep` ~ "Sheep",
+      `affected_animals/Camels` ~ "Camels",
+      `affected_animals/Cattle` ~ "Cattle",
+      `affected_animals/I don't know` ~ "I don't know"
+    )
+  ) %>%
+  
+  add_overall(last = TRUE) %>%
+  
+  modify_header(
+    label ~ "**Animal affected by RVF**"
+  ) %>%
+  
+  modify_caption(
+    "**Table: Knowledge of Animals Affected by RVF by Subcounty (Counts Only)**"
+  ) %>%
+  
+  bold_labels() %>%
+  italicize_levels()
+```
 
