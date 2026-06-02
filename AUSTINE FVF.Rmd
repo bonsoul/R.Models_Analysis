@@ -35,6 +35,102 @@ data <- read_csv("Datasets/RVF KAP Survey_CSV.csv")
 ```
 
 
+```{r}
+library(janitor)
+
+data1 <- data %>%
+  janitor::clean_names()
+```
+
+
+```{r}
+animal_transmission_vars <- grep(
+  "^transmit_animals",
+  names(data1),
+  value = TRUE
+)
+
+human_transmission_vars <- grep(
+  "^transmit_humans",
+  names(data1),
+  value = TRUE
+)
+
+animal_sign_vars <- grep(
+  "^signs_and_symptoms_animals",
+  names(data1),
+  value = TRUE
+)
+
+human_sign_vars <- grep(
+  "^signs_and_symptoms_humans",
+  names(data1),
+  value = TRUE
+)
+```
+
+
+```{r}
+library(dplyr)
+
+checkbox_vars <- c(
+  animal_transmission_vars,
+  human_transmission_vars,
+  animal_sign_vars,
+  human_sign_vars
+)
+
+data1 <- data1 %>%
+  mutate(
+    across(
+      all_of(checkbox_vars),
+      ~ ifelse(is.na(.), 0, 1)
+    )
+  )
+```
+
+```{r}
+human_transmission_score_vars <- c(
+  "transmit_humans_mosquito_bites",
+  "transmit_humans_contact_with_blood_or_body_fluids_of_infected_animals",
+  "transmit_humans_eating_uncooked_or_undercooked_meat_from_infected_animals",
+  "transmit_humans_touching_aborted_animal_fetus_assisting_animal_in_giving_birth",
+  "transmit_humans_drinking_raw_milk_from_infected_animals"
+)
+
+animal_transmission_score_vars <- c(
+  "transmit_animals_mosquito_bites",
+  "transmit_animals_contact_with_abortus_in_pasture",
+  "transmit_animals_contact_with_infected_animals",
+  "transmit_animals_drinking_water_contaminated_by_infected_animals",
+  "transmit_animals_contact_with_wildlife",
+  "transmit_animals_direct_contact_with_discharge_from_infected_animals"
+)
+
+animal_sign_score_vars <- c(
+  "signs_and_symptoms_animals_many_abortions_in_pregnant_animals_stormy_abortions",
+  "signs_and_symptoms_animals_mass_death_of_young_animals",
+  "signs_and_symptoms_animals_high_fever",
+  "signs_and_symptoms_animals_weakness_or_recumbency_lying_down",
+  "signs_and_symptoms_animals_mucopurulent_nasal_discharge",
+  "signs_and_symptoms_animals_salivation",
+  "signs_and_symptoms_animals_diarrhea_with_blood",
+  "signs_and_symptoms_animals_decrease_in_milk_production"
+)
+
+human_sign_score_vars <- c(
+  "signs_and_symptoms_humans_fever",
+  "signs_and_symptoms_humans_headache",
+  "signs_and_symptoms_humans_muscle_pain_joint_pain",
+  "signs_and_symptoms_humans_blurred_vision_eye_problems",
+  "signs_and_symptoms_humans_hemorrhage_vomiting_blood_nose_bleeding_gum_bleeding",
+  "signs_and_symptoms_humans_back_ache",
+  "signs_and_symptoms_humans_vomiting",
+  "signs_and_symptoms_humans_diarrhea"
+)
+```
+
+
 
 ```{r, data cleaning and validation}
 df1 <- data %>%
@@ -900,4 +996,166 @@ df2 %>%
 
 
 
+
+```{r}
+
+df3 <- df2 %>%
+  mutate(
+    
+    knowledge_score = rowSums(select(., 
+      rvf_affects_humans,          # knows RVF affects humans (1/0)
+      rvf_transmit_animals,        # knows animal transmission (1/0)
+      rvf_signs_animals,           # knows animal signs (1/0)
+      rvf_signs_humans,            # knows human signs (1/0)
+      rvf_is_dangerous,            # knows RVF is dangerous (1/0)
+      rvf_vaccine_available        # knows vaccine exists (1/0)
+    ), na.rm = TRUE),
+
+    # Binary outcome: good knowledge = score >= median (or use your cut-off)
+    good_knowledge = factor(
+      if_else(knowledge_score >= median(knowledge_score, na.rm = TRUE), 1, 0),
+      levels = c(0, 1), labels = c("Poor", "Good")
+    ),
+
+    # ── Predictors: set reference categories ──────────────────────────────
+
+    # Place of residence — Wajir South as reference
+    subcounty = factor(subcounty,
+                       levels = c("Wajir South", "Wajir North", "Wajir East")),
+
+    # Gender — Female as reference
+    gender = factor(gender, levels = c("Female", "Male")),
+
+    # Age — 18-24 as reference
+    age_group = factor(age_group,
+                       levels = c("18-24", "25-34", "35-44", "45-54", "55 and above")),
+
+    # Education — None as reference
+    education_level = factor(education_level,
+                             levels = c("None", "Primary", "Secondary", "Tertiary")),
+
+    # Capacity/role — Livestock keeper as reference
+    role = factor(role,
+                  levels = c("Livestock keeper", "Herder", "Livestock trader")),
+
+    # HH member previously infected — No as reference
+    hh_member_had_rvf = factor(hh_member_had_rvf, levels = c("No", "Yes"))
+  )
+
+# ── 2. Check variable distributions before modelling ─────────────────────
+df3 %>% count(subcounty)
+df3 %>% count(gender)
+df3 %>% count(age_group)
+df3 %>% count(education_level)
+df3 %>% count(role)
+df3 %>% count(hh_member_had_rvf)
+df3 %>% count(good_knowledge)
+
+# ── 3. Fit the multiple logistic regression model ─────────────────────────
+model <- glm(
+  good_knowledge ~ subcounty + gender + age_group +
+    education_level + role + hh_member_had_rvf,
+  data   = df3,
+  family = binomial(link = "logit")
+)
+
+summary(model)
+
+# ── 4. Extract tidy results ───────────────────────────────────────────────
+results <- tidy(model, exponentiate = TRUE, conf.int = TRUE) %>%
+  filter(term != "(Intercept)") %>%
+  mutate(
+    OR       = round(estimate,  2),
+    Z        = round(statistic, 3),
+    P_value  = round(p.value,   3),
+    CI_Lower = round(conf.low,  2),
+    CI_Upper = round(conf.high, 2)
+  )
+
+# ── 5. Map term names → Variable + Category labels ────────────────────────
+label_map <- tribble(
+  ~term,                               ~Variable,                              ~Category,
+  "subcountyWajir North",              "Place of residence",                   "Wajir North",
+  "subcountyWajir East",               "Place of residence",                   "Wajir East",
+  "genderMale",                        "Gender",                               "Male",
+  "age_group25-34",                    "Age",                                  "25-34",
+  "age_group35-44",                    "Age",                                  "35-44",
+  "age_group45-54",                    "Age",                                  "45-54",
+  "age_group55 and above",             "Age",                                  "55 and above",
+  "education_levelPrimary",            "Education",                            "Primary",
+  "education_levelSecondary",          "Education",                            "Secondary",
+  "education_levelTertiary",           "Education",                            "Tertiary",
+  "roleHerder",                        "Capacity role",                        "Herder",
+  "roleLivestock trader",              "Capacity role",                        "Livestock trader",
+  "hh_member_had_rvfYes",             "HH member previously infected w/ RVF", "Yes"
+)
+
+# ── 6. Reference rows ─────────────────────────────────────────────────────
+ref_rows <- tribble(
+  ~Variable,                              ~Category,           ~OR,        ~Z,   ~P_value, ~CI_Lower, ~CI_Upper,
+  "Place of residence",                   "Wajir South*",      "1 (ref)",  "-",  "-",      "-",       "-",
+  "Gender",                               "Female*",           "1 (ref)",  "-",  "-",      "-",       "-",
+  "Age",                                  "18-24*",            "1 (ref)",  "-",  "-",      "-",       "-",
+  "Education",                            "None*",             "1 (ref)",  "-",  "-",      "-",       "-",
+  "Capacity role",                        "Livestock keeper*", "1 (ref)",  "-",  "-",      "-",       "-",
+  "HH member previously infected w/ RVF", "No*",              "1 (ref)",  "-",  "-",      "-",       "-"
+)
+
+# ── 7. Combine estimated + reference rows ────────────────────────────────
+var_order <- c(
+  "Place of residence", "Gender", "Age",
+  "Education", "Capacity role",
+  "HH member previously infected w/ RVF"
+)
+
+final_table <- results %>%
+  left_join(label_map, by = "term") %>%
+  mutate(
+    OR       = as.character(OR),
+    Z        = as.character(Z),
+    P_value  = as.character(P_value),
+    CI_Lower = as.character(CI_Lower),
+    CI_Upper = as.character(CI_Upper)
+  ) %>%
+  select(Variable, Category, OR, Z, P_value, CI_Lower, CI_Upper) %>%
+  bind_rows(ref_rows) %>%
+  mutate(Variable = factor(Variable, levels = var_order)) %>%
+  arrange(Variable) %>%
+  mutate(Variable = as.character(Variable)) %>%
+  group_by(Variable) %>%
+  mutate(Variable = if_else(row_number() == 1, Variable, "")) %>%
+  ungroup()
+
+# ── 8. Rename for display ─────────────────────────────────────────────────
+final_table <- final_table %>%
+  rename(
+    "Variables"    = Variable,
+    "Category"     = Category,
+    "OR"           = OR,
+    "Z"            = Z,
+    "P-value"      = P_value,
+    "Lower 95% CI" = CI_Lower,
+    "Upper 95% CI" = CI_Upper
+  )
+
+# ── 9. Render with flextable ──────────────────────────────────────────────
+ft <- flextable(final_table) %>%
+  add_header_row(
+    values     = c("", "", "", "", "", "95% CI of OR", ""),
+    colwidths  = c(1, 1, 1, 1, 1, 2, 0)
+  ) %>%
+  theme_booktabs() %>%
+  bold(part = "header") %>%
+  align(align = "center", part = "all") %>%
+  align(j = 1:2, align = "left", part = "all") %>%
+  autofit() %>%
+  set_caption(
+    "Table 1: Multiple logistic regression analysis of the association between factors and good knowledge about RVF"
+  )
+
+ft
+
+# ── 10. Export to Word ────────────────────────────────────────────────────
+# save_as_docx(ft, path = "Table1_RVF_knowledge.docx")
+```
 
