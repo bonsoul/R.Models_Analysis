@@ -28,11 +28,12 @@ library(gtsummary)
 
 ```{r, loading data}
 
-data <- read_csv(
-  "Datasets/RVF KAP Survey_CSV.csv",
-  locale = locale(encoding = "Windows-1252")
-)
+data <- read_csv("Datasets/RVF KAP Survey_CSV.csv")
+
+
+
 ```
+
 
 
 ```{r, data cleaning and validation}
@@ -896,4 +897,7 @@ df2 %>%
   bold_labels() %>%
   italicize_levels()
 ```
+
+
+
 
