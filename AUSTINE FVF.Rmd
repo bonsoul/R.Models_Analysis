@@ -1189,6 +1189,9 @@ df2 %>%
 
 
 
+
+
+
 ```{r}
 
 df3 <- df2 %>%
@@ -1347,7 +1350,6 @@ ft <- flextable(final_table) %>%
 
 ft
 
-# ── 10. Export to Word ────────────────────────────────────────────────────
-# save_as_docx(ft, path = "Table1_RVF_knowledge.docx")
+
 ```
 
