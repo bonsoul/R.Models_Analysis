@@ -52,3 +52,23 @@ table(Wage$education, Wage$jobclass) |>
 
 
 library(ggstatsplot)
+
+
+
+
+ggbetweenstats(
+  data = airquality,
+  x = Month,
+  y = Ozone,
+  type = "np",
+  pairwise.display = 'none',
+  results.subtitle =F
+)
+
+
+airquality |>
+  group_by(Month) |>
+  identify_outliers(Ozone)
+
+
+Auto |> shapiro_test(acceleration)
