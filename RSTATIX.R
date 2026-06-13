@@ -108,3 +108,9 @@ df |>
   wilcox_test(len ~ supp, detailed = TRUE) |>
   adjust_pvalue(method = "bonferroni") |>
   add_significance()
+
+
+##effect size
+
+df |>
+  wilcox_test(len ~ dose, detailed = TRUE)
