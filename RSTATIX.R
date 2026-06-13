@@ -72,3 +72,39 @@ airquality |>
 
 
 Auto |> shapiro_test(acceleration)
+
+
+Auto |> 
+  group_by(cylinders, origin) |>
+  shapiro_test(acceleration,horsepower)
+
+
+Auto |> 
+  group_by(cylinders, origin) |>
+  shapiro_test(acceleration,horsepower) |>
+  p_round(digits = 2) |>
+  p_format(accuracy = 0.01)
+
+
+## comparing means and ranks
+
+## Mann-Whitney test
+
+data("ToothGrowth")
+
+df <- ToothGrowth |>
+  convert_as_factor(dose, supp) |>
+  reorder_levels('dose', order = c("2", "1","0.5"))
+
+
+wilcox_test(
+  data = df,
+  formula = len ~ supp
+)
+
+
+df |>
+  group_by(dose) |>
+  wilcox_test(len ~ supp, detailed = TRUE) |>
+  adjust_pvalue(method = "bonferroni") |>
+  add_significance()
