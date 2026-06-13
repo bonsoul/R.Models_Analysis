@@ -96,12 +96,14 @@ df <- ToothGrowth |>
   convert_as_factor(dose, supp) |>
   reorder_levels('dose', order = c("2", "1","0.5"))
 
+##two sample unpaired test
 
 wilcox_test(
   data = df,
   formula = len ~ supp
 )
 
+##compare supp levels after grouping the data
 
 df |>
   group_by(dose) |>
@@ -114,3 +116,11 @@ df |>
 
 df |>
   wilcox_test(len ~ dose, detailed = TRUE)
+
+##comparison against all
+df |> wilcox_test(len ~ dose, ref.group = "0.5")
+
+df |> wilcox_test(len ~ dose, ref.group = "all")
+
+##pairwise test
+
