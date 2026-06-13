@@ -35,292 +35,6 @@ data <- read_csv("Datasets/RVF KAP Survey_CSV.csv")
 ```
 
 
-```{r}
-library(janitor)
-
-data1 <- data %>%
-  janitor::clean_names()
-```
-
-
-```{r}
-animal_transmission_vars <- grep(
-  "^transmit_animals",
-  names(data1),
-  value = TRUE
-)
-
-human_transmission_vars <- grep(
-  "^transmit_humans",
-  names(data1),
-  value = TRUE
-)
-
-animal_sign_vars <- grep(
-  "^signs_and_symptoms_animals",
-  names(data1),
-  value = TRUE
-)
-
-human_sign_vars <- grep(
-  "^signs_and_symptoms_humans",
-  names(data1),
-  value = TRUE
-)
-```
-
-
-```{r}
-library(dplyr)
-
-checkbox_vars <- c(
-  animal_transmission_vars,
-  human_transmission_vars,
-  animal_sign_vars,
-  human_sign_vars
-)
-
-data1 <- data1 %>%
-  mutate(
-    across(
-      all_of(checkbox_vars),
-      ~ ifelse(is.na(.), 0, 1)
-    )
-  )
-```
-
-```{r}
-human_transmission_score_vars <- c(
-  "transmit_humans_mosquito_bites",
-  "transmit_humans_contact_with_blood_or_body_fluids_of_infected_animals",
-  "transmit_humans_eating_uncooked_or_undercooked_meat_from_infected_animals",
-  "transmit_humans_touching_aborted_animal_fetus_assisting_animal_in_giving_birth",
-  "transmit_humans_drinking_raw_milk_from_infected_animals"
-)
-
-animal_transmission_score_vars <- c(
-  "transmit_animals_mosquito_bites",
-  "transmit_animals_contact_with_abortus_in_pasture",
-  "transmit_animals_contact_with_infected_animals",
-  "transmit_animals_drinking_water_contaminated_by_infected_animals",
-  "transmit_animals_contact_with_wildlife",
-  "transmit_animals_direct_contact_with_discharge_from_infected_animals"
-)
-
-animal_sign_score_vars <- c(
-  "signs_and_symptoms_animals_many_abortions_in_pregnant_animals_stormy_abortions",
-  "signs_and_symptoms_animals_mass_death_of_young_animals",
-  "signs_and_symptoms_animals_high_fever",
-  "signs_and_symptoms_animals_weakness_or_recumbency_lying_down",
-  "signs_and_symptoms_animals_mucopurulent_nasal_discharge",
-  "signs_and_symptoms_animals_salivation",
-  "signs_and_symptoms_animals_diarrhea_with_blood",
-  "signs_and_symptoms_animals_decrease_in_milk_production"
-)
-
-human_sign_score_vars <- c(
-  "signs_and_symptoms_humans_fever",
-  "signs_and_symptoms_humans_headache",
-  "signs_and_symptoms_humans_muscle_pain_joint_pain",
-  "signs_and_symptoms_humans_blurred_vision_eye_problems",
-  "signs_and_symptoms_humans_hemorrhage_vomiting_blood_nose_bleeding_gum_bleeding",
-  "signs_and_symptoms_humans_back_ache",
-  "signs_and_symptoms_humans_vomiting",
-  "signs_and_symptoms_humans_diarrhea"
-)
-```
-
-```{r}
-data1 <- data1 %>%
-  mutate(
-
-    animal_transmission_score =
-      rowSums(select(., all_of(animal_transmission_score_vars))),
-
-    human_transmission_score =
-      rowSums(select(., all_of(human_transmission_score_vars))),
-
-    animal_sign_score =
-      rowSums(select(., all_of(animal_sign_score_vars))),
-
-    human_sign_score =
-      rowSums(select(., all_of(human_sign_score_vars)))
-  )
-```
-
-```{r}
-data1 <- data1 %>%
-  mutate(
-    knowledge_score =
-      animal_transmission_score +
-      human_transmission_score +
-      animal_sign_score +
-      human_sign_score
-  )
-```
-
-```{r}
-cutoff <- median(data1$knowledge_score, na.rm = TRUE)
-
-data1 <- data1 %>%
-  mutate(
-    good_knowledge = factor(
-      ifelse(knowledge_score >= cutoff,
-             "Good",
-             "Poor"),
-      levels = c("Poor", "Good")
-    )
-  )
-```
-
-```{r}
-table(data1$good_knowledge)
-
-prop.table(table(data1$good_knowledge))*100
-
-```
-
-
-```{r}
-library(dplyr)
-library(knitr)
-library(kableExtra)
-
-knowledge_summary <- data1 %>%
-  summarise(
-    Human_Transmission_Mean = mean(human_transmission_score, na.rm = TRUE),
-    Human_Transmission_SD   = sd(human_transmission_score, na.rm = TRUE),
-
-    Animal_Transmission_Mean = mean(animal_transmission_score, na.rm = TRUE),
-    Animal_Transmission_SD   = sd(animal_transmission_score, na.rm = TRUE),
-
-    Human_Signs_Mean = mean(human_sign_score, na.rm = TRUE),
-    Human_Signs_SD   = sd(human_sign_score, na.rm = TRUE),
-
-    Animal_Signs_Mean = mean(animal_sign_score, na.rm = TRUE),
-    Animal_Signs_SD   = sd(animal_sign_score, na.rm = TRUE)
-  ) %>%
-  tidyr::pivot_longer(
-    everything(),
-    names_to = c("Domain", ".value"),
-    names_pattern = "(.*)_(Mean|SD)"
-  )
-
-knowledge_summary %>%
-  mutate(
-    `Mean (SD)` = sprintf("%.2f (%.2f)", Mean, SD)
-  ) %>%
-  select(Domain, `Mean (SD)`) %>%
-  kable(
-    caption = "Knowledge Scores Across RVF Knowledge Domains",
-    align = c("l", "c")
-  ) %>%
-  kable_styling(
-    bootstrap_options = c("striped", "hover", "condensed"),
-    full_width = FALSE
-  )
-```
-
-
-
-```{r}
-knowledge_distribution <- tibble(
-  Domain = c(
-    "Human Transmission",
-    "Animal Transmission",
-    "Human Signs",
-    "Animal Signs"
-  ),
-  Mean = c(
-    mean(data1$human_transmission_score, na.rm = TRUE),
-    mean(data1$animal_transmission_score, na.rm = TRUE),
-    mean(data1$human_sign_score, na.rm = TRUE),
-    mean(data1$animal_sign_score, na.rm = TRUE)
-  ),
-  SD = c(
-    sd(data1$human_transmission_score, na.rm = TRUE),
-    sd(data1$animal_transmission_score, na.rm = TRUE),
-    sd(data1$human_sign_score, na.rm = TRUE),
-    sd(data1$animal_sign_score, na.rm = TRUE)
-  ),
-  Median = c(
-    median(data1$human_transmission_score, na.rm = TRUE),
-    median(data1$animal_transmission_score, na.rm = TRUE),
-    median(data1$human_sign_score, na.rm = TRUE),
-    median(data1$animal_sign_score, na.rm = TRUE)
-  ),
-  Min = c(
-    min(data1$human_transmission_score, na.rm = TRUE),
-    min(data1$animal_transmission_score, na.rm = TRUE),
-    min(data1$human_sign_score, na.rm = TRUE),
-    min(data1$animal_sign_score, na.rm = TRUE)
-  ),
-  Max = c(
-    max(data1$human_transmission_score, na.rm = TRUE),
-    max(data1$animal_transmission_score, na.rm = TRUE),
-    max(data1$human_sign_score, na.rm = TRUE),
-    max(data1$animal_sign_score, na.rm = TRUE)
-  )
-)
-
-knowledge_distribution %>%
-  kable(
-    digits = 2,
-    caption = "Distribution of RVF Knowledge Scores by Domain"
-  ) %>%
-  kable_styling(
-    bootstrap_options = c("striped", "hover"),
-    full_width = FALSE
-  )
-```
-
-```{r}
-data1 %>%
-  count(good_knowledge) %>%
-  mutate(
-    Percent = round(100 * n / sum(n), 1)
-  ) %>%
-  kable(
-    caption = "Overall RVF Knowledge Classification"
-  ) %>%
-  kable_styling(
-    bootstrap_options = c("striped", "hover"),
-    full_width = FALSE
-  )
-```
-
-
-```{r}
-domain_table <- tibble(
-  Domain = c(
-    "Human Transmission",
-    "Animal Transmission",
-    "Human Signs",
-    "Animal Signs"
-  ),
-  Mean_Score = c(
-    mean(data1$human_transmission_score, na.rm = TRUE),
-    mean(data1$animal_transmission_score, na.rm = TRUE),
-    mean(data1$human_sign_score, na.rm = TRUE),
-    mean(data1$animal_sign_score, na.rm = TRUE)
-  ),
-  Maximum_Score = c(5, 6, 8, 8)
-) %>%
-  mutate(
-    Percent_Correct = round(100 * Mean_Score / Maximum_Score, 1)
-  )
-
-domain_table %>%
-  kable(
-    digits = 2,
-    caption = "Average Knowledge Scores by RVF Knowledge Domain"
-  ) %>%
-  kable_styling(
-    bootstrap_options = c("striped", "hover", "condensed"),
-    full_width = FALSE
-  )
-```
-
 
 
 
@@ -1351,5 +1065,295 @@ ft <- flextable(final_table) %>%
 ft
 
 
+```
+
+
+#cleaning transmission variables
+
+
+```{r}
+library(janitor)
+
+data1 <- data %>%
+  janitor::clean_names()
+```
+
+
+```{r}
+animal_transmission_vars <- grep(
+  "^transmit_animals",
+  names(data1),
+  value = TRUE
+)
+
+human_transmission_vars <- grep(
+  "^transmit_humans",
+  names(data1),
+  value = TRUE
+)
+
+animal_sign_vars <- grep(
+  "^signs_and_symptoms_animals",
+  names(data1),
+  value = TRUE
+)
+
+human_sign_vars <- grep(
+  "^signs_and_symptoms_humans",
+  names(data1),
+  value = TRUE
+)
+```
+
+
+```{r}
+library(dplyr)
+
+checkbox_vars <- c(
+  animal_transmission_vars,
+  human_transmission_vars,
+  animal_sign_vars,
+  human_sign_vars
+)
+
+data1 <- data1 %>%
+  mutate(
+    across(
+      all_of(checkbox_vars),
+      ~ ifelse(is.na(.), 0, 1)
+    )
+  )
+```
+
+```{r}
+human_transmission_score_vars <- c(
+  "transmit_humans_mosquito_bites",
+  "transmit_humans_contact_with_blood_or_body_fluids_of_infected_animals",
+  "transmit_humans_eating_uncooked_or_undercooked_meat_from_infected_animals",
+  "transmit_humans_touching_aborted_animal_fetus_assisting_animal_in_giving_birth",
+  "transmit_humans_drinking_raw_milk_from_infected_animals"
+)
+
+animal_transmission_score_vars <- c(
+  "transmit_animals_mosquito_bites",
+  "transmit_animals_contact_with_abortus_in_pasture",
+  "transmit_animals_contact_with_infected_animals",
+  "transmit_animals_drinking_water_contaminated_by_infected_animals",
+  "transmit_animals_contact_with_wildlife",
+  "transmit_animals_direct_contact_with_discharge_from_infected_animals"
+)
+
+animal_sign_score_vars <- c(
+  "signs_and_symptoms_animals_many_abortions_in_pregnant_animals_stormy_abortions",
+  "signs_and_symptoms_animals_mass_death_of_young_animals",
+  "signs_and_symptoms_animals_high_fever",
+  "signs_and_symptoms_animals_weakness_or_recumbency_lying_down",
+  "signs_and_symptoms_animals_mucopurulent_nasal_discharge",
+  "signs_and_symptoms_animals_salivation",
+  "signs_and_symptoms_animals_diarrhea_with_blood",
+  "signs_and_symptoms_animals_decrease_in_milk_production"
+)
+
+human_sign_score_vars <- c(
+  "signs_and_symptoms_humans_fever",
+  "signs_and_symptoms_humans_headache",
+  "signs_and_symptoms_humans_muscle_pain_joint_pain",
+  "signs_and_symptoms_humans_blurred_vision_eye_problems",
+  "signs_and_symptoms_humans_hemorrhage_vomiting_blood_nose_bleeding_gum_bleeding",
+  "signs_and_symptoms_humans_back_ache",
+  "signs_and_symptoms_humans_vomiting",
+  "signs_and_symptoms_humans_diarrhea"
+)
+```
+
+```{r}
+data1 <- data1 %>%
+  mutate(
+
+    animal_transmission_score =
+      rowSums(select(., all_of(animal_transmission_score_vars))),
+
+    human_transmission_score =
+      rowSums(select(., all_of(human_transmission_score_vars))),
+
+    animal_sign_score =
+      rowSums(select(., all_of(animal_sign_score_vars))),
+
+    human_sign_score =
+      rowSums(select(., all_of(human_sign_score_vars)))
+  )
+```
+
+```{r}
+data1 <- data1 %>%
+  mutate(
+    knowledge_score =
+      animal_transmission_score +
+      human_transmission_score +
+      animal_sign_score +
+      human_sign_score
+  )
+```
+
+```{r}
+cutoff <- median(data1$knowledge_score, na.rm = TRUE)
+
+data1 <- data1 %>%
+  mutate(
+    good_knowledge = factor(
+      ifelse(knowledge_score >= cutoff,
+             "Good",
+             "Poor"),
+      levels = c("Poor", "Good")
+    )
+  )
+```
+
+```{r}
+table(data1$good_knowledge)
+
+prop.table(table(data1$good_knowledge))*100
+
+```
+
+
+```{r}
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+knowledge_summary <- data1 %>%
+  summarise(
+    Human_Transmission_Mean = mean(human_transmission_score, na.rm = TRUE),
+    Human_Transmission_SD   = sd(human_transmission_score, na.rm = TRUE),
+
+    Animal_Transmission_Mean = mean(animal_transmission_score, na.rm = TRUE),
+    Animal_Transmission_SD   = sd(animal_transmission_score, na.rm = TRUE),
+
+    Human_Signs_Mean = mean(human_sign_score, na.rm = TRUE),
+    Human_Signs_SD   = sd(human_sign_score, na.rm = TRUE),
+
+    Animal_Signs_Mean = mean(animal_sign_score, na.rm = TRUE),
+    Animal_Signs_SD   = sd(animal_sign_score, na.rm = TRUE)
+  ) %>%
+  tidyr::pivot_longer(
+    everything(),
+    names_to = c("Domain", ".value"),
+    names_pattern = "(.*)_(Mean|SD)"
+  )
+
+knowledge_summary %>%
+  mutate(
+    `Mean (SD)` = sprintf("%.2f (%.2f)", Mean, SD)
+  ) %>%
+  select(Domain, `Mean (SD)`) %>%
+  kable(
+    caption = "Knowledge Scores Across RVF Knowledge Domains",
+    align = c("l", "c")
+  ) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE
+  )
+```
+
+
+
+```{r}
+knowledge_distribution <- tibble(
+  Domain = c(
+    "Human Transmission",
+    "Animal Transmission",
+    "Human Signs",
+    "Animal Signs"
+  ),
+  Mean = c(
+    mean(data1$human_transmission_score, na.rm = TRUE),
+    mean(data1$animal_transmission_score, na.rm = TRUE),
+    mean(data1$human_sign_score, na.rm = TRUE),
+    mean(data1$animal_sign_score, na.rm = TRUE)
+  ),
+  SD = c(
+    sd(data1$human_transmission_score, na.rm = TRUE),
+    sd(data1$animal_transmission_score, na.rm = TRUE),
+    sd(data1$human_sign_score, na.rm = TRUE),
+    sd(data1$animal_sign_score, na.rm = TRUE)
+  ),
+  Median = c(
+    median(data1$human_transmission_score, na.rm = TRUE),
+    median(data1$animal_transmission_score, na.rm = TRUE),
+    median(data1$human_sign_score, na.rm = TRUE),
+    median(data1$animal_sign_score, na.rm = TRUE)
+  ),
+  Min = c(
+    min(data1$human_transmission_score, na.rm = TRUE),
+    min(data1$animal_transmission_score, na.rm = TRUE),
+    min(data1$human_sign_score, na.rm = TRUE),
+    min(data1$animal_sign_score, na.rm = TRUE)
+  ),
+  Max = c(
+    max(data1$human_transmission_score, na.rm = TRUE),
+    max(data1$animal_transmission_score, na.rm = TRUE),
+    max(data1$human_sign_score, na.rm = TRUE),
+    max(data1$animal_sign_score, na.rm = TRUE)
+  )
+)
+
+knowledge_distribution %>%
+  kable(
+    digits = 2,
+    caption = "Distribution of RVF Knowledge Scores by Domain"
+  ) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover"),
+    full_width = FALSE
+  )
+```
+
+```{r}
+data1 %>%
+  count(good_knowledge) %>%
+  mutate(
+    Percent = round(100 * n / sum(n), 1)
+  ) %>%
+  kable(
+    caption = "Overall RVF Knowledge Classification"
+  ) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover"),
+    full_width = FALSE
+  )
+```
+
+
+```{r}
+domain_table <- tibble(
+  Domain = c(
+    "Human Transmission",
+    "Animal Transmission",
+    "Human Signs",
+    "Animal Signs"
+  ),
+  Mean_Score = c(
+    mean(data1$human_transmission_score, na.rm = TRUE),
+    mean(data1$animal_transmission_score, na.rm = TRUE),
+    mean(data1$human_sign_score, na.rm = TRUE),
+    mean(data1$animal_sign_score, na.rm = TRUE)
+  ),
+  Maximum_Score = c(5, 6, 8, 8)
+) %>%
+  mutate(
+    Percent_Correct = round(100 * Mean_Score / Maximum_Score, 1)
+  )
+
+domain_table %>%
+  kable(
+    digits = 2,
+    caption = "Average Knowledge Scores by RVF Knowledge Domain"
+  ) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE
+  )
 ```
 
