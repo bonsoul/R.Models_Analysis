@@ -21,6 +21,8 @@ library(stringr)
 library(scales)
 library(gtsummary)
 library(janitor)
+library(knitr)
+library(kableExtra)
 
 ```
 
@@ -119,55 +121,128 @@ dat_clean <- dat |>
 ```
 
 ```{r}
+dat2 <- dat_clean |>
 
-dat1 <- dat_clean %>%
+  # Drop all-NA / useless columns 
+  select(-where(~ all(is.na(.x)))) |>      
+  select(-c(consent,                         # all "Yes"
+             gps_raw,                        # redundant with lat/lon columns
+             respondent_other,               # almost all NA
+             farming_other,
+             livestock_type_raw,             # redundant with ls_* columns
+             learn_source_raw,
+             transmit_animal_raw,
+             #transmit_animal_other,
+             animals_get_rvf_raw,
+             transmit_human_raw,
+             signs_animals_raw,
+             signs_humans_raw)) |>
+
+  # ── 2. Convert select-all-that-apply → logical ────────────────────────────
+  mutate(across(
+    c(starts_with("ls_"), starts_with("src_"), starts_with("ta_"),
+      starts_with("aa_"), starts_with("th_"), starts_with("sa_"),
+      starts_with("sh_")),
+    ~ !is.na(.x)
+  )) |>
+
+  # ── 3. Yes / No / Don't know → factor ────────────────────────────────────
+  mutate(across(
+    c(keeps_livestock, heard_rvf, rvf_affects_humans, vacc_available,
+      rvf_dangerous, herd_had_rvf, hh_member_had_rvf, at_risk,
+      prevention_possible, vaccinates_livestock, avoid_sick_animals,
+      avoid_abortus, uses_ppe, cooks_meat, reports_deaths),
+    ~ factor(.x, levels = c("Yes", "No", "Don't know"))
+  )) |>
+
+  # ── 4. Ordered factors ────────────────────────────────────────────────────
   mutate(
-    # Dates
-    date_interview = as.Date(date_interview),
+    age_group = factor(age_group,
+      levels  = c("18–24", "25–34", "35–44", "45–54", "55 and above"),
+      ordered = TRUE),
 
-    # Numeric variables
-    hh_size = as.numeric(hh_size),
-    hh_adults = as.numeric(hh_adults),
-    hh_children = as.numeric(hh_children),
-    gps_lat = as.numeric(gps_lat),
-    gps_lon = as.numeric(gps_lon),
-    gps_alt = as.numeric(gps_alt),
-    gps_prec = as.numeric(gps_prec),
+    education = factor(education,
+      levels  = c("No formal education", "Primary", "Secondary",
+                  "Tertiary/College", "University and above"),
+      ordered = TRUE),
 
-    # Categorical variables
-    consent = as.factor(consent),
-    interviewer = as.factor(interviewer),
-    subcounty = as.factor(subcounty),
-    ward = as.factor(ward),
-    location = as.factor(location),
-    village = as.factor(village),
-    keeps_livestock = as.factor(keeps_livestock),
-    respondent = as.factor(respondent),
-    role = as.factor(role),
-    gender = as.factor(gender),
-    age_group = as.factor(age_group),
-    education = as.factor(education),
-    income_ksh = as.factor(income_ksh),
-    farming_system = as.factor(farming_system)
+    income_ksh = factor(income_ksh,
+      levels  = c("Below 500", "500 - 4,999", "5,000 - 19,999",
+                  "20,000 - 49,999", "50,000 and above"),
+      ordered = TRUE),
+
+    concern_community = factor(concern_community,
+      levels  = c("Not concerned", "Slightly concerned", "Moderately concerned",
+                  "Very concerned", "Extremely concerned"),
+      ordered = TRUE),
+
+    vacc_effectiveness = factor(vacc_effectiveness,
+      levels  = c("Not effective", "Slightly effective", "Moderately effective",
+                  "Very effective", "Extremely effective"),
+      ordered = TRUE),
+
+    mosquito_control = factor(mosquito_control,
+      levels  = c("Never", "Rarely", "Sometimes", "Often", "Always"),
+      ordered = TRUE)
+  ) |>
+
+  # ── 5. Remaining character → unordered factor ─────────────────────────────
+  mutate(across(
+    c(interviewer, subcounty, ward, location, village,
+      respondent, role, gender, farming_system,
+      worried_season, ta_others, transmit_animal_other),
+    as.factor
+  )) |>
+
+  # ── 6. Flag suspicious GPS precision (2200m = likely missing fix) ─────────
+  mutate(
+    gps_prec = if_else(gps_prec > 100, NA_real_, gps_prec)
+  )
+
+
+```
+
+
+
+
+```{r,percentage of nulls}
+
+dat2 |>
+  summarise(across(everything(), list(
+    n_miss = ~ sum(is.na(.x)),
+    pct    = ~ round(mean(is.na(.x)) * 100, 1)
+  ))) |>
+  tidyr::pivot_longer(everything(),
+    names_to      = c("variable", ".value"),
+    names_pattern = "(.+)_(n_miss|pct)"
+  ) |>
+  filter(n_miss > 0) |>
+  arrange(desc(pct)) |>
+  rename(
+    Variable       = variable,
+    `N Missing`    = n_miss,
+    `% Missing`    = pct
+  ) |>
+  kable(
+    caption = "Missing Data Summary",
+    align   = c("l", "r", "r")
+  ) |>
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+    full_width        = FALSE,
+    position          = "left"
+  ) |>
+  row_spec(0, bold = TRUE) |>                                    # bold header
+  row_spec(
+    which(round(dat2 |>                                          # highlight > 10% missing
+      summarise(across(everything(), ~ mean(is.na(.x)) * 100)) |>
+      tidyr::pivot_longer(everything()) |>
+      filter(value > 0) |>
+      arrange(desc(value)) |>
+      pull(value), 1) > 10),
+    background = "#fff3cd"
   )
 ```
 
-```{r,checking nulls}
-dat1 %>%
-  summarise(across(everything(), ~sum(is.na(.)))) %>%
-  tidyr::pivot_longer(
-    everything(),
-    names_to = "Variable",
-    values_to = "Missing"
-  ) %>%
-  mutate(
-    Percent = round(100 * Missing / nrow(dat1), 2)
-  ) %>%
-  tbl_summary(
-    by = NULL,
-    statistic = list(
-      Missing ~ "{mean}",
-      Percent ~ "{mean}"
-    )
-  )
-```
+
+
