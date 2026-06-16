@@ -112,7 +112,7 @@ dat_clean <- dat |>
     reports_deaths      = "In the event of abortions or sudden deaths in your livestock, do you report to veterinary or public health authorities?"
   ) |>
 
-  # ── 3. Rename select-all-that-apply sub-columns ──────────────────────────
+  # Rename select-all-that-apply sub-columns 
   rename_with(~ gsub("livestock_owned/", "ls_", .x)) |>
   rename_with(~ gsub("learn_source/", "src_", .x)) |>
   rename_with(~ gsub("transmit_animals/", "ta_", .x)) |>
@@ -121,14 +121,12 @@ dat_clean <- dat |>
   rename_with(~ gsub("signs_and_symptoms_animals/", "sa_", .x)) |>
   rename_with(~ gsub("signs_and_symptoms_humans/", "sh_", .x)) |>
 
-  # ── 4. Clean up remaining special characters in col names ────────────────
+  # Clean up remaining special characters 
   rename_with(~ gsub("[^a-zA-Z0-9_]", "_", .x)) |>
   rename_with(~ gsub("_+", "_", .x)) |>        # collapse multiple underscores
   rename_with(~ gsub("_$", "", .x)) |>          # strip trailing underscores
   rename_with(tolower)
 
-# ── 5. Preview result ────────────────────────────────────────────────────────
-glimpse(dat_clean)
-colnames(dat_clean)
+
 ```
 
