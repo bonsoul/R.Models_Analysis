@@ -31,18 +31,6 @@ dat <- read_csv("Datasets/RVF KAP Survey_CSV.csv")
 
 
 
-```{r,checking nulls}
-tbl_summary(dat, missing = "no") |>
-  add_n() |>
-  add_stat(
-    fns = everything() ~ function(data, variable, ...) {
-      n_miss <- sum(is.na(data[[variable]]))
-      p_miss <- round(n_miss / nrow(data) * 100, 1)
-      glue("{n_miss} ({p_miss}%)")
-    }
-  ) |>
-  modify_header(add_stat_1 ~ "**N Missing (%)**")
-```
 
 
 ```{r, renaming the columsn}
@@ -130,3 +118,56 @@ dat_clean <- dat |>
 
 ```
 
+```{r}
+
+dat1 <- dat_clean %>%
+  mutate(
+    # Dates
+    date_interview = as.Date(date_interview),
+
+    # Numeric variables
+    hh_size = as.numeric(hh_size),
+    hh_adults = as.numeric(hh_adults),
+    hh_children = as.numeric(hh_children),
+    gps_lat = as.numeric(gps_lat),
+    gps_lon = as.numeric(gps_lon),
+    gps_alt = as.numeric(gps_alt),
+    gps_prec = as.numeric(gps_prec),
+
+    # Categorical variables
+    consent = as.factor(consent),
+    interviewer = as.factor(interviewer),
+    subcounty = as.factor(subcounty),
+    ward = as.factor(ward),
+    location = as.factor(location),
+    village = as.factor(village),
+    keeps_livestock = as.factor(keeps_livestock),
+    respondent = as.factor(respondent),
+    role = as.factor(role),
+    gender = as.factor(gender),
+    age_group = as.factor(age_group),
+    education = as.factor(education),
+    income_ksh = as.factor(income_ksh),
+    farming_system = as.factor(farming_system)
+  )
+```
+
+```{r,checking nulls}
+dat1 %>%
+  summarise(across(everything(), ~sum(is.na(.)))) %>%
+  tidyr::pivot_longer(
+    everything(),
+    names_to = "Variable",
+    values_to = "Missing"
+  ) %>%
+  mutate(
+    Percent = round(100 * Missing / nrow(dat1), 2)
+  ) %>%
+  tbl_summary(
+    by = NULL,
+    statistic = list(
+      Missing ~ "{mean}",
+      Percent ~ "{mean}"
+    )
+  )
+```
