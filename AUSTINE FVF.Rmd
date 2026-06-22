@@ -28,9 +28,7 @@ library(gtsummary)
 
 ```{r, loading data}
 
-data <-  read_csv("R WORK/R.Models_Analysis/Datasets/RVF KAP Survey_CSV.csv")
-
-
+data <- read_csv("Datasets/RVF KAP Survey_CSV.csv")
 
 ```
 
@@ -853,8 +851,24 @@ animal_table <- df2 %>%
   
   select(Animal, `n (%)`)
 
-animal_table
+
 ```
+
+```{r, Animal Species Affected by RVF}
+
+
+animal_table %>%
+  kable(
+    col.names = c("Affected Animal", "n (%)"),
+    caption = "Animal Species Affected by RVF",
+    align = c("l", "c")
+  ) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE
+  )
+```
+
 
 
 ```{r, cattle affected}
@@ -1355,5 +1369,119 @@ domain_table %>%
     bootstrap_options = c("striped", "hover", "condensed"),
     full_width = FALSE
   )
+```
+
+
+```{r}
+df5 <- df2 %>%
+  mutate(
+    # Fix education_level FIRST — convert to character then recode
+    education_level = recode(as.character(education_level),
+      "No formal education" = "No formal education",
+      "Primary"             = "Primary",
+      "Secondary"           = "Secondary",
+      "Tertiary/College"    = "Tertiary/University",
+      "University"          = "Tertiary/University"
+    ),
+    education_level = factor(education_level,
+                             levels = c("No formal education", "Primary", 
+                                        "Secondary", "Tertiary/University"))
+  ) %>%
+  mutate(
+    rvf_affects_humans_bin    = if_else(rvf_affects_humans == "Yes", 1L, 0L),
+    rvf_transmit_animals_bin  = if_else(!is.na(rvf_transmit_animals) & 
+                                          rvf_transmit_animals != "", 1L, 0L),
+    rvf_signs_animals_bin     = if_else(!is.na(rvf_signs_animals) & 
+                                          rvf_signs_animals != "", 1L, 0L),
+    rvf_signs_humans_bin      = if_else(!is.na(rvf_signs_humans) & 
+                                          rvf_signs_humans != "", 1L, 0L),
+    rvf_is_dangerous_bin      = if_else(rvf_is_dangerous %in% 
+                                          c("Agree", "Strongly agree"), 1L, 0L),
+    rvf_vaccine_available_bin = if_else(rvf_vaccine_available == "Yes", 1L, 0L)
+  ) %>%
+  mutate(
+    knowledge_score = rowSums(
+      select(., rvf_affects_humans_bin, rvf_transmit_animals_bin, rvf_signs_animals_bin,
+                rvf_signs_humans_bin, rvf_is_dangerous_bin, rvf_vaccine_available_bin),
+      na.rm = TRUE
+    ),
+
+    good_knowledge = factor(
+      if_else(knowledge_score >= median(knowledge_score, na.rm = TRUE), 1, 0),
+      levels = c(0, 1), labels = c("Poor", "Good")
+    ),
+
+    subcounty         = factor(subcounty,
+                               levels = c("Wajir South", "Wajir North", "Wajir East")),
+    gender            = factor(gender, levels = c("Female", "Male")),
+    age_group         = factor(age_group,
+                               levels = c("18-24", "25-34", "35-44", "45-54", "55 and above")),
+    role              = factor(role,
+                               levels = c("Livestock keeper", "Herder", "Livestock trader")),
+    hh_member_had_rvf = factor(hh_member_had_rvf, levels = c("No", "Yes"))
+  )
+```
+
+
+```{r}
+# Check all predictors for variation
+table(df5$subcounty, useNA = "always")
+table(df5$gender, useNA = "always")
+table(df5$age_group, useNA = "always")
+table(df5$role, useNA = "always")
+table(df5$hh_member_had_rvf, useNA = "always")
+```
+
+
+```{r}
+df5 %>%
+  select(subcounty, gender, age_group, role, hh_member_had_rvf) %>%
+  summarise(across(everything(), ~ nlevels(droplevels(.))))
+```
+
+```{r}
+df6 <- df5 %>%
+  mutate(age_group = factor(
+    gsub("\u2013", "-", as.character(age_group)),
+    levels = c("18-24", "25-34", "35-44", "45-54", "55 and above")
+  ))
+
+# Verify
+table(df6$age_group, useNA = "always")
+```
+
+```{r}
+df6 %>%
+  select(subcounty, gender, age_group, role, hh_member_had_rvf) %>%
+  summarise(across(everything(), ~ nlevels(droplevels(.))))
+
+# Also check age_group values
+table(df6$age_group, useNA = "always")
+```
+
+```{r}
+multi_model <- glm(
+  good_knowledge ~ subcounty + gender + age_group + 
+                   role + hh_member_had_rvf,
+  data = df6,
+  family = binomial
+)
+
+tbl_regression(
+  multi_model,
+  exponentiate = TRUE,
+  label = list(
+    subcounty         ~ "Sub-county",
+    gender            ~ "Gender",
+    age_group         ~ "Age group",
+    role              ~ "Occupation",
+    hh_member_had_rvf ~ "HH member previously infected"
+  )
+) %>%
+  bold_p(t = 0.05) %>%
+  bold_labels() %>%
+  add_significance_stars() %>%
+  modify_header(estimate ~ "**OR**", p.value ~ "**p-value**") %>%
+  modify_caption("**Multivariable logistic regression: predictors of good RVF knowledge**")
 ```
 
