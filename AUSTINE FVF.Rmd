@@ -28,7 +28,7 @@ library(gtsummary)
 
 ```{r, loading data}
 
-data <- read_csv("Datasets/RVF KAP Survey_CSV.csv")
+data <-  read_csv("R WORK/R.Models_Analysis/Datasets/RVF KAP Survey_CSV.csv")
 
 
 
