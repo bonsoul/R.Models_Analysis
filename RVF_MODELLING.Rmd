@@ -28,7 +28,7 @@ library(kableExtra)
 
 
 ```{r reading dataset, echo=FALSE}
-dat <- read_csv("Datasets/RVF KAP Survey_CSV.csv")
+dat <-  read_csv("Datasets/RVF KAP Survey_CSV.csv")
 ```
 
 
