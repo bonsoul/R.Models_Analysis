@@ -19,6 +19,8 @@ library(ggplot2)
 library(patchwork)
 library(stringr)
 library(scales)
+library(knitr)
+library(kableExtra)
 library(gtsummary)
 
 ```
@@ -194,10 +196,10 @@ df1 <- df1 %>%
 ```
 
 
-```{r, checking dtypes}
+
+```{r}
 df2 <- df1 %>%
   mutate(
-
     # Factors: 
     consent           = factor(consent),
     subcounty         = factor(subcounty),
@@ -210,7 +212,6 @@ df2 <- df1 %>%
     gender            = factor(gender),
     farming_system    = factor(farming_system),
     rvf_worry_season  = factor(rvf_worry_season),
-
     # Binary
     keeps_livestock      = factor(keeps_livestock,   levels = c("Yes", "No")),
     heard_of_rvf         = factor(heard_of_rvf,      levels = c("Yes", "No")),
@@ -222,58 +223,63 @@ df2 <- df1 %>%
                               levels = c("Yes", "No", "Don't know")),
     rvf_vaccine_available  = factor(rvf_vaccine_available,
                               levels = c("Yes", "No", "Don't know")),
-
-    #ordinal
-    age_group = factor(age_group,
-                  levels = c("18–24", "25–34", "35–44", "45–54", "55 and above"),
-                  ordered = TRUE),
-
-    education_level = factor(education_level,
-                  levels = c("No formal education", "Primary",
-                             "Secondary", "Tertiary/College", "University"),
-                  ordered = TRUE),
-
+    # Ordinal
+    age_group = factor(
+      gsub("\u2013", "-", as.character(age_group)),  # fix en-dashes
+      levels = c("18-24", "25-34", "35-44", "45-54", "55 and above"),
+      ordered = TRUE
+    ),
+    
+    # ── Fixed: recode df1 labels to clean labels before factoring ──────────
+    education_level = factor(
+      recode(as.character(education_level),
+        "No formal education" = "No formal education",
+        "Primary School"      = "Primary",
+        "Secondary School"    = "Secondary",
+        "Tertiary/College"    = "Tertiary/College",
+        "University"          = "University"
+      ),
+      levels = c("No formal education", "Primary", "Secondary",
+                 "Tertiary/College", "University"),
+      ordered = TRUE
+    ),
+    
     monthly_income_ksh = factor(monthly_income_ksh,
                   levels = c("Below 500", "500 - 4,999", "5,000 - 19,999",
                              "20,000 - 49,999", "50,000 and above"),
                   ordered = TRUE),
-
     rvf_is_dangerous = factor(rvf_is_dangerous,
                   levels = c("Strongly disagree", "Disagree", "Neutral",
                              "Agree", "Strongly agree"),
                   ordered = TRUE),
-
     community_concern = factor(community_concern,
                   levels = c("Not concerned", "Somewhat concerned",
                              "Very concerned", "Extremely concerned",
                              "I don't know"),
                   ordered = FALSE),  
-
     vaccine_effectiveness = factor(vaccine_effectiveness,
                   levels = c("Not effective", "Somewhat effective",
                              "Very effective", "Extremely effective",
                              "I don't know"),
                   ordered = FALSE),
-
-    #frequency
+    # Frequency
     across(c(mosquito_control_freq, avoids_sick_animals, avoids_abortus,
              uses_protective_gear, cooks_meat_thoroughly),
            ~ factor(.x, levels = c("Never", "Sometimes", "Often", "Always"),
                     ordered = TRUE)),
-
     vaccinates_livestock = factor(vaccinates_livestock,
                   levels = c("No", "Yes, sometimes", "Yes, regularly",
                              "I don't know about vaccination")),
-
     reports_to_authorities = factor(reports_to_authorities,
                   levels = c("Never", "Sometimes", "Often", "Always",
                              "I'm not aware of reporting procedures")),
-
-   #drop the nulls
+    # Drop null columns
     across(where(~ is.logical(.x) && all(is.na(.x))), ~ NULL)
   )
 
+
 ```
+
 
 ```{r, mutating season}
 df2 <- df2 %>%
@@ -920,169 +926,9 @@ df2 %>%
 
 
 
-```{r}
-
-df3 <- df2 %>%
-  mutate(
-    
-    knowledge_score = rowSums(select(., 
-      rvf_affects_humans,          # knows RVF affects humans (1/0)
-      rvf_transmit_animals,        # knows animal transmission (1/0)
-      rvf_signs_animals,           # knows animal signs (1/0)
-      rvf_signs_humans,            # knows human signs (1/0)
-      rvf_is_dangerous,            # knows RVF is dangerous (1/0)
-      rvf_vaccine_available        # knows vaccine exists (1/0)
-    ), na.rm = TRUE),
-
-    # Binary outcome: good knowledge = score >= median (or use your cut-off)
-    good_knowledge = factor(
-      if_else(knowledge_score >= median(knowledge_score, na.rm = TRUE), 1, 0),
-      levels = c(0, 1), labels = c("Poor", "Good")
-    ),
-
-    # ── Predictors: set reference categories ──────────────────────────────
-
-    # Place of residence — Wajir South as reference
-    subcounty = factor(subcounty,
-                       levels = c("Wajir South", "Wajir North", "Wajir East")),
-
-    # Gender — Female as reference
-    gender = factor(gender, levels = c("Female", "Male")),
-
-    # Age — 18-24 as reference
-    age_group = factor(age_group,
-                       levels = c("18-24", "25-34", "35-44", "45-54", "55 and above")),
-
-    # Education — None as reference
-    education_level = factor(education_level,
-                             levels = c("None", "Primary", "Secondary", "Tertiary")),
-
-    # Capacity/role — Livestock keeper as reference
-    role = factor(role,
-                  levels = c("Livestock keeper", "Herder", "Livestock trader")),
-
-    # HH member previously infected — No as reference
-    hh_member_had_rvf = factor(hh_member_had_rvf, levels = c("No", "Yes"))
-  )
-
-# ── 2. Check variable distributions before modelling ─────────────────────
-df3 %>% count(subcounty)
-df3 %>% count(gender)
-df3 %>% count(age_group)
-df3 %>% count(education_level)
-df3 %>% count(role)
-df3 %>% count(hh_member_had_rvf)
-df3 %>% count(good_knowledge)
-
-# ── 3. Fit the multiple logistic regression model ─────────────────────────
-model <- glm(
-  good_knowledge ~ subcounty + gender + age_group +
-    education_level + role + hh_member_had_rvf,
-  data   = df3,
-  family = binomial(link = "logit")
-)
-
-summary(model)
-
-# ── 4. Extract tidy results ───────────────────────────────────────────────
-results <- tidy(model, exponentiate = TRUE, conf.int = TRUE) %>%
-  filter(term != "(Intercept)") %>%
-  mutate(
-    OR       = round(estimate,  2),
-    Z        = round(statistic, 3),
-    P_value  = round(p.value,   3),
-    CI_Lower = round(conf.low,  2),
-    CI_Upper = round(conf.high, 2)
-  )
-
-# ── 5. Map term names → Variable + Category labels ────────────────────────
-label_map <- tribble(
-  ~term,                               ~Variable,                              ~Category,
-  "subcountyWajir North",              "Place of residence",                   "Wajir North",
-  "subcountyWajir East",               "Place of residence",                   "Wajir East",
-  "genderMale",                        "Gender",                               "Male",
-  "age_group25-34",                    "Age",                                  "25-34",
-  "age_group35-44",                    "Age",                                  "35-44",
-  "age_group45-54",                    "Age",                                  "45-54",
-  "age_group55 and above",             "Age",                                  "55 and above",
-  "education_levelPrimary",            "Education",                            "Primary",
-  "education_levelSecondary",          "Education",                            "Secondary",
-  "education_levelTertiary",           "Education",                            "Tertiary",
-  "roleHerder",                        "Capacity role",                        "Herder",
-  "roleLivestock trader",              "Capacity role",                        "Livestock trader",
-  "hh_member_had_rvfYes",             "HH member previously infected w/ RVF", "Yes"
-)
-
-# ── 6. Reference rows ─────────────────────────────────────────────────────
-ref_rows <- tribble(
-  ~Variable,                              ~Category,           ~OR,        ~Z,   ~P_value, ~CI_Lower, ~CI_Upper,
-  "Place of residence",                   "Wajir South*",      "1 (ref)",  "-",  "-",      "-",       "-",
-  "Gender",                               "Female*",           "1 (ref)",  "-",  "-",      "-",       "-",
-  "Age",                                  "18-24*",            "1 (ref)",  "-",  "-",      "-",       "-",
-  "Education",                            "None*",             "1 (ref)",  "-",  "-",      "-",       "-",
-  "Capacity role",                        "Livestock keeper*", "1 (ref)",  "-",  "-",      "-",       "-",
-  "HH member previously infected w/ RVF", "No*",              "1 (ref)",  "-",  "-",      "-",       "-"
-)
-
-# ── 7. Combine estimated + reference rows ────────────────────────────────
-var_order <- c(
-  "Place of residence", "Gender", "Age",
-  "Education", "Capacity role",
-  "HH member previously infected w/ RVF"
-)
-
-final_table <- results %>%
-  left_join(label_map, by = "term") %>%
-  mutate(
-    OR       = as.character(OR),
-    Z        = as.character(Z),
-    P_value  = as.character(P_value),
-    CI_Lower = as.character(CI_Lower),
-    CI_Upper = as.character(CI_Upper)
-  ) %>%
-  select(Variable, Category, OR, Z, P_value, CI_Lower, CI_Upper) %>%
-  bind_rows(ref_rows) %>%
-  mutate(Variable = factor(Variable, levels = var_order)) %>%
-  arrange(Variable) %>%
-  mutate(Variable = as.character(Variable)) %>%
-  group_by(Variable) %>%
-  mutate(Variable = if_else(row_number() == 1, Variable, "")) %>%
-  ungroup()
-
-# ── 8. Rename for display ─────────────────────────────────────────────────
-final_table <- final_table %>%
-  rename(
-    "Variables"    = Variable,
-    "Category"     = Category,
-    "OR"           = OR,
-    "Z"            = Z,
-    "P-value"      = P_value,
-    "Lower 95% CI" = CI_Lower,
-    "Upper 95% CI" = CI_Upper
-  )
-
-# ── 9. Render with flextable ──────────────────────────────────────────────
-ft <- flextable(final_table) %>%
-  add_header_row(
-    values     = c("", "", "", "", "", "95% CI of OR", ""),
-    colwidths  = c(1, 1, 1, 1, 1, 2, 0)
-  ) %>%
-  theme_booktabs() %>%
-  bold(part = "header") %>%
-  align(align = "center", part = "all") %>%
-  align(j = 1:2, align = "left", part = "all") %>%
-  autofit() %>%
-  set_caption(
-    "Table 1: Multiple logistic regression analysis of the association between factors and good knowledge about RVF"
-  )
-
-ft
 
 
-```
-
-
-#cleaning transmission variables
+## cleaning transmission variables
 
 
 ```{r}
@@ -1460,9 +1306,23 @@ table(df6$age_group, useNA = "always")
 ```
 
 ```{r}
+df6 <- df6 %>%
+  mutate(age_group = factor(
+    gsub("\u2013", "-", as.character(df2$age_group)),  # pull from df2 directly
+    levels = c("18-24", "25-34", "35-44", "45-54", "55 and above")
+  ))
+
+# Verify
+table(df6$age_group, useNA = "always")
+```
+
+
+
+
+```{r, multivariate analysis}
 multi_model <- glm(
   good_knowledge ~ subcounty + gender + age_group + 
-                   role + hh_member_had_rvf,
+                   education_level + role + hh_member_had_rvf,
   data = df6,
   family = binomial
 )
@@ -1474,6 +1334,7 @@ tbl_regression(
     subcounty         ~ "Sub-county",
     gender            ~ "Gender",
     age_group         ~ "Age group",
+    education_level   ~ "Education level",
     role              ~ "Occupation",
     hh_member_had_rvf ~ "HH member previously infected"
   )
@@ -1483,5 +1344,157 @@ tbl_regression(
   add_significance_stars() %>%
   modify_header(estimate ~ "**OR**", p.value ~ "**p-value**") %>%
   modify_caption("**Multivariable logistic regression: predictors of good RVF knowledge**")
+
 ```
+
+# association between factors and positive attitude
+
+
+```{r}
+# Check these candidate attitude variables
+table(df6$rvf_is_dangerous, useNA = "always")
+table(df6$self_at_risk, useNA = "always")
+table(df6$community_concern, useNA = "always")
+table(df6$rvf_spread_preventable, useNA = "always")
+```
+
+```{r}
+df8 <- df6 %>%
+  mutate(education_level = fct_collapse(education_level,
+    "No formal education" = "No formal education",
+    "Primary/Secondary"   = c("Primary", "Secondary")
+  ))
+
+table(df8$education_level, useNA = "always")
+```
+
+```{r}
+df8 <- df8 %>%
+  mutate(
+    positive_attitude = factor(
+      if_else(rvf_is_dangerous %in% c("Agree", "Strongly agree"), 1, 0),
+      levels = c(0, 1), labels = c("Negative", "Positive")
+    ),
+    education_level = fct_collapse(as.character(education_level),
+      "No formal education" = "No formal education",
+      "Primary/Secondary"   = c("Primary", "Secondary")
+    ) %>% factor(levels = c("No formal education", "Primary/Secondary"))
+  )
+
+# Verify
+table(df8$positive_attitude, useNA = "always")
+table(df8$education_level, useNA = "always")
+```
+
+
+
+
+```{r,predictors of positive attitude towards RVF}
+attitude_model <- glm(
+  positive_attitude ~ subcounty + gender + age_group +
+                      education_level + role + hh_member_had_rvf,
+  data = df8,
+  family = binomial
+)
+
+tbl_regression(
+  attitude_model,
+  exponentiate = TRUE,
+  label = list(
+    subcounty         ~ "Sub-county",
+    gender            ~ "Gender",
+    age_group         ~ "Age group",
+    education_level   ~ "Education level",
+    role              ~ "Occupation",
+    hh_member_had_rvf ~ "HH member previously infected"
+  )
+) %>%
+  bold_p(t = 0.05) %>%
+  bold_labels() %>%
+  add_significance_stars() %>%
+  modify_header(estimate ~ "**OR**", p.value ~ "**p-value**") %>%
+  modify_caption("**Multivariable logistic regression: predictors of positive attitude towards RVF**")
+```
+
+
+##question threee practise
+
+```{r}
+df9 <- df8 %>%
+  mutate(
+    # Binary: good practice = Often or Always (here Only Always since Often = 0)
+    mosquito_control_bin    = if_else(mosquito_control_freq == "Always", 1L, 0L),
+    avoids_sick_animals_bin = if_else(avoids_sick_animals %in% 
+                                        c("Often", "Always"), 1L, 0L),
+    avoids_abortus_bin      = if_else(avoids_abortus %in% 
+                                        c("Often", "Always"), 1L, 0L),
+    uses_protective_gear_bin = if_else(uses_protective_gear %in% 
+                                         c("Often", "Always"), 1L, 0L),
+    cooks_meat_bin          = if_else(cooks_meat_thoroughly %in% 
+                                        c("Often", "Always"), 1L, 0L),
+    reports_authorities_bin = if_else(reports_to_authorities %in% 
+                                        c("Often", "Always"), 1L, 0L)
+  ) %>%
+  mutate(
+    # Composite practices score
+    practice_score = rowSums(
+      select(., mosquito_control_bin, avoids_sick_animals_bin, avoids_abortus_bin,
+                uses_protective_gear_bin, cooks_meat_bin, reports_authorities_bin),
+      na.rm = TRUE
+    ),
+
+    # Binary outcome: good practice = score >= median
+    good_practice = factor(
+      if_else(practice_score >= median(practice_score, na.rm = TRUE), 1, 0),
+      levels = c(0, 1), labels = c("Poor", "Good")
+    )
+  )
+
+# Verify
+table(df9$practice_score, useNA = "always")
+table(df9$good_practice, useNA = "always")
+```
+
+
+```{r}
+df9 <- df9 %>%
+  mutate(
+    good_practice = factor(
+      if_else(practice_score >= 4, 1, 0),
+      levels = c(0, 1), labels = c("Poor", "Good")
+    )
+  )
+
+table(df9$good_practice, useNA = "always")
+```
+
+
+```{r}
+practice_model <- glm(
+  good_practice ~ subcounty + gender + age_group +
+                  education_level + role + hh_member_had_rvf,
+  data = df9,
+  family = binomial
+)
+
+tbl_regression(
+  practice_model,
+  exponentiate = TRUE,
+  label = list(
+    subcounty         ~ "Sub-county",
+    gender            ~ "Gender",
+    age_group         ~ "Age group",
+    education_level   ~ "Education level",
+    role              ~ "Occupation",
+    hh_member_had_rvf ~ "HH member previously infected"
+  )
+) %>%
+  bold_p(t = 0.05) %>%
+  bold_labels() %>%
+  add_significance_stars() %>%
+  modify_header(estimate ~ "**OR**", p.value ~ "**p-value**") %>%
+  modify_caption("**Multivariable logistic regression: predictors of good preventive practices against RVF**")
+```
+
+
 
