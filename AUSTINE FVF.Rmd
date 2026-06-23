@@ -1316,6 +1316,17 @@ df6 <- df6 %>%
 table(df6$age_group, useNA = "always")
 ```
 
+```{r}
+df6 <- df6 %>%
+  mutate(
+    education_level = fct_collapse(
+      as.character(education_level),
+      "No formal education" = "No formal education",
+      "Primary/Secondary" = c("Primary", "Secondary")
+    ) %>%
+      factor(levels = c("No formal education", "Primary/Secondary"))
+  )
+```
 
 
 
