@@ -80,3 +80,32 @@ ggplot(diverging_data, aes(x = pct_signed, y = item, fill = response)) +
     panel.grid.minor = element_blank(),
     panel.grid.major.y = element_blank()
   )
+
+
+
+# Valid range check + explicit score computation
+att_valid <- data %>%
+  select(all_of(att_items)) %>%
+  mutate(across(everything(), ~ .x %in% 1:5)) %>%
+  reduce(`&`)  # TRUE only if all 6 items are valid codes for that row
+
+df <- data %>%
+  mutate(
+    attitude_score = if_else(
+      att_valid,
+      rowSums(select(., all_of(att_items)), na.rm = FALSE),
+      NA_real_
+    ),
+    attitude_cat = case_when(
+      is.na(attitude_score)     ~ NA_character_,
+      attitude_score < 18       ~ "Positive",
+      attitude_score > 18       ~ "Negative",
+      attitude_score == 18      ~ "Borderline",   # see note below
+      TRUE                      ~ NA_character_
+    )
+  )
+
+# Quick check: how many rows got excluded, and why
+sum(is.na(df$attitude_score))
+df %>% filter(is.na(attitude_score)) %>% select(all_of(att_items))
+
