@@ -128,6 +128,7 @@ reqion_weather_cor <- tourism_region_q |>
 
 print(reqion_weather_cor, n = 25)
 
+##correlation
 
 reqion_weather_cor |>
   slice_head(n = 25) |>
@@ -140,4 +141,39 @@ reqion_weather_cor |>
     bootstrap_options = c("striped", "hover", "condensed"),
     full_width = FALSE,
     position = "center"
+  )
+
+## plot the region with the strongerst temp-trips
+top_region <- reqion_weather_cor$region[1]
+
+
+tourism_region_q |>
+  filter(region == top_region) |>
+  ggplot(aes(x = mean_temp, y = total_trips)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    title = paste("Tourism vs Temperature:", top_region),
+    x = "Mean quarterly temp (celcius)", y = "Total trips"
+  ) +
+  theme_minimal()
+
+
+reqion_weather_cor |>
+  arrange(cor_rainy_days) |>
+  head(10) |>
+  print()
+
+
+
+reqion_weather_cor |>
+  arrange(cor_rainy_days) |>
+  slice_head(n = 10) |>
+  kable(
+    caption = "Top 10 Regions with the Lowest Correlation for Rainy Days",
+    digits = 3
+  ) |>
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE
   )
