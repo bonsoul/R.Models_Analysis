@@ -93,6 +93,51 @@ ggplot(finch_compare, aes(x = group, y = rh, fill = group)) +
   ) +
   theme_minimal()
 
+##Q2: How does weather affect tourism numbers in each region?
+
+weather_quarterly <- weather |>
+  group_by(ws_id,year,quarter) |>
+  summarise(
+    mean_temp = mean(temp, na.rm = TRUE),
+    total_prcp = sum(prcp, na.rm = TRUE),
+    pct_rainy_days = mean(rainy, na.rm = TRUE) * 100,
+    mean_wind = mean(wind_speed, na.rm=TRUE),
+    .groups = "drop"
+  )
 
 
+tourism_region_q <- tourism |>
+  filter(!is.na(ws_id)) |>
+  group_by(region,ws_id,year,quarter) |>
+  summarise(total_trips = sum(trips, na.rm = TRUE), .groups = "drop") |>
+  left_join(weather_quarterly, by = c("ws_id", "year","quarter")) |>
+  filter(!is.na(mean_temp))
 
+
+reqion_weather_cor <- tourism_region_q |>
+  group_by(region) |>
+  filter(n() >= 8) |>
+  summarise(
+    n_quarters = n(),
+    cor_temp = cor(mean_temp, total_trips, use = "complete.obs"),
+    cor_prcp = cor(total_prcp, total_trips, use = "complete.obs"),
+    cor_rainy_days = cor(pct_rainy_days, total_trips, use = "complete.obs"),
+    .groups = "drop"
+  ) |>
+  arrange(desc(abs(cor_temp)))
+
+print(reqion_weather_cor, n = 25)
+
+
+reqion_weather_cor |>
+  slice_head(n = 25) |>
+  kable(
+    caption = "Weather Correlations by Region (First 25 Rows)",
+    digits = 3,
+    align = "c"
+  ) |>
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    position = "center"
+  )
