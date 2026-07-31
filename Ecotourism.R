@@ -73,7 +73,7 @@ finch_summary |>
   row_spec(0, bold = TRUE, color = "white", background = "#2C3E50") |>
   column_spec(1, bold = TRUE)
 
-
+##visualization
 ggplot(finch_compare, aes(x = group, y = temp, fill = group)) +
   geom_boxplot(show.legend = FALSE) +
   labs(
@@ -82,5 +82,17 @@ ggplot(finch_compare, aes(x = group, y = temp, fill = group)) +
     x = NULL, y = "Mean daily temperature (°C)"
   ) +
   theme_minimal()
+
+##visual two
+
+ggplot(finch_compare, aes(x = group, y = rh, fill = group)) +
+  geom_boxplot(show.legend = FALSE) +
+  labs(
+    title = "Relative humidity: Gouldian finch sighting days vs. baseline",
+    x = NULL, y = "Relative humidity (%)"
+  ) +
+  theme_minimal()
+
+
 
 
