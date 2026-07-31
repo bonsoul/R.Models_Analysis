@@ -158,13 +158,7 @@ tourism_region_q |>
   ) +
   theme_minimal()
 
-
-reqion_weather_cor |>
-  arrange(cor_rainy_days) |>
-  head(10) |>
-  print()
-
-
+##regions where rains seems most -ve
 
 reqion_weather_cor |>
   arrange(cor_rainy_days) |>
