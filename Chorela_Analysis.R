@@ -17,7 +17,7 @@ set.seed(123)
 # 1. LOAD & CLEAN
 # ------------------------------------------------------------------------------
 
-raw <- read_csv("cleaned_cholera_data.csv", show_col_types = FALSE)
+raw <- read_csv("~/Zoonotic-Disease-Unit---Data-Cleaning/Cleaned_Dataset/cleaned_cholera_data.csv",show_col_types = FALSE)
 
 df <- raw %>%
   rename(
