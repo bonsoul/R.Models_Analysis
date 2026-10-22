@@ -27,7 +27,7 @@ p <- ggplot(total_df, aes(x = "", y = n, fill = ordered)) +
                "Yes" = "Culture / AST ordered")
   ) +
   labs(
-    title    = "Culture test and AST ordered",
+    title    = "Culture test and AST ordered (N = 1985)",
     fill     = NULL
   ) +
   theme_void(base_size = 14) +
@@ -51,7 +51,7 @@ p
 #dir.create("outputs", showWarnings = FALSE)
 
 # High-res PNG (slides, email, reports)
-ggsave("outputs/culture_ast_total_pie.png", plot = p,
+ggsave("culture_ast_total_pie.png", plot = p,
        width = 8, height = 7, dpi = 300, bg = "white")
 
 # Vector formats (crisp at any size, good for print / PowerPoint)
