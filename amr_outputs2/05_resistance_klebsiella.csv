@@ -1,0 +1,12 @@
+antibiotic,n_tested,n_R,n_I,n_S,pct_R,ci_low,ci_high
+Cotrimoxazole (SXT),16,15,0,1,93.8,69.8,99.8
+Ceftazidime,16,14,0,2,87.5,61.7,98.4
+Streptomycin,16,14,1,1,87.5,61.7,98.4
+Ciprofloxacin,16,9,4,3,56.2,29.9,80.2
+Tetracycline,16,8,0,8,50,24.7,75.3
+Cefepime,16,7,0,9,43.8,19.8,70.1
+Amoxicillin-clavulanate (AMC),16,6,4,6,37.5,15.2,64.6
+Chloramphenicol,16,6,0,10,37.5,15.2,64.6
+Gentamicin,16,4,0,12,25,7.3,52.4
+Cefoxitin,16,3,1,12,18.8,4,45.6
+Meropenem,16,1,1,14,6.2,0.2,30.2

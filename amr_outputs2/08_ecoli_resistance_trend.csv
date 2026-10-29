@@ -1,0 +1,12 @@
+antibiotic,Round 1,Round 2,change_n
+Meropenem,1,2,1
+Cefoxitin,4,6,2
+Cefepime,14,17,3
+Amoxicillin-clavulanate (AMC),6,9,3
+Gentamicin,2,5,3
+Chloramphenicol,1,4,3
+Ciprofloxacin,9,14,5
+Ceftazidime,16,24,8
+Cotrimoxazole (SXT),12,21,9
+Tetracycline,14,23,9
+Streptomycin,9,21,12
