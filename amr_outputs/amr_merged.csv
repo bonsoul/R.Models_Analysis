@@ -1,0 +1,77 @@
+round,sample_id,specimen,source,site,pathogen,mucoid,isolate_raw,synergy,zone_Ceftazidime,int_Ceftazidime,zone_Meropenem,int_Meropenem,zone_Cefepime,int_Cefepime,zone_Cefoxitin,int_Cefoxitin,zone_Amoxicillin-clavulanate (AMC),int_Amoxicillin-clavulanate (AMC),zone_Gentamicin,int_Gentamicin,zone_Ciprofloxacin,int_Ciprofloxacin,zone_Streptomycin,int_Streptomycin,zone_Cotrimoxazole (SXT),int_Cotrimoxazole (SXT),zone_Chloramphenicol,int_Chloramphenicol,zone_Tetracycline,int_Tetracycline
+Round 1,FESA001,River water,River Down-Stream,Nairobi River at Kilimambogo,E. coli,FALSE,E.Coli,Negative,9,R,26,S,17,R,21,S,11,R,25,S,6,R,6,R,6,R,20,S,6,R
+Round 1,FESA002,River water,River Confluence,"Thiririrka River  U/S,Ruiru confluence",No growth,FALSE,No growth,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Round 1,FESA003,River water,River Down-Stream,Ruiru river at theThika road bridge,No growth,FALSE,No growth,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Round 1,FESA004,River water,River Down-Stream,Kamiti River at Kiambu road bridge,E. coli,FALSE,E.Coli,Positive,21,R,27,S,20,S,23,S,22,S,20,S,25,I,13,I,6,R,25,S,26,S
+Round 1,FESA004,River water,River Down-Stream,Kamiti River at Kiambu road bridge,Klebsiella spp.,FALSE,Klebsiella spp,Positive,20,R,27,S,20,S,25,S,21,S,20,S,20,R,7,R,6,R,27,S,23,S
+Round 1,FESA005,Influent,WWTP,Dandora Waste WaterSewerage  Treatment Plant,Klebsiella spp.,FALSE,Klebsiella spp,Positive,20,R,27,S,20,S,25,S,21,S,20,S,20,R,7,R,6,R,27,S,23,S
+Round 1,FESA006,Effluent,WWTP,Dandora Effluent Discharge 1,Klebsiella spp.,FALSE,Klebsiella spp,Positive,17,R,28,S,18,R,24,S,18,S,22,S,20,R,6,R,6,R,27,S,26,S
+Round 1,FESA007,Effluent,WWTP,Dandora Effluent Discharge 2,E. coli,FALSE,E.Coli,Positive,18,R,30,S,16,R,27,S,22,S,24,S,26,S,8,R,6,R,25,S,24,S
+Round 1,FESA007,Effluent,WWTP,Dandora Effluent Discharge 2,Klebsiella spp.,FALSE,Klebsiella spp,Positive,25,S,27,S,22,S,16,I,10,R,6,R,27,S,6,R,6,R,6,R,6,R
+Round 1,FESA008,Effluent,WWTP,Dandora Effluent Discharge 3,E. coli,FALSE,E.Coli,Negative,6,R,25,S,18,R,6,R,7,R,21,S,6,R,18,S,24,S,20,S,6,R
+Round 1,FESA009,River water,River Down-Stream,Ngong River at Outering Road,No growth,FALSE,No growth,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Round 1,FESA010,River water,River Down-Stream,Nairobi River at Outering Road,E. coli,FALSE,E.Coli,Negative,15,R,27,S,12,R,25,S,17,I,22,S,28,S,12,I,6,R,26,S,6,R
+Round 1,FESA011,River water,River Down-Stream,Ngong River at Kangundo Road,No growth,FALSE,No growth,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Round 1,FESA012,River water,River Up-stream,Ngong River at Njiru bridge,Klebsiella spp.,FALSE,Klebsiella spp,Positive,17,R,28,S,20,S,25,S,20,S,24,S,20,R,6,R,6,R,6,R,9,R
+Round 1,FESA013,River water,River Down-Stream,Ruirwaka River before confluence,No growth,FALSE,No growth,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Round 1,FESA014,River water,River Confluence,Ruirwaka River after confluence with Mathare River,Klebsiella spp.,FALSE,Klebsiella spp,Negative,15,R,27,S,30,S,10,R,10,R,20,S,20,R,6,R,6,R,6,R,6,R
+Round 1,FESA015,River water,River Up-stream,Ngong River at Nairobi dam exit,E. coli,FALSE,E.Coli,Negative,19,R,20,I,20,S,6,R,13,R,17,I,28,S,9,R,22,S,6,R,20,S
+Round 1,FESA016,River water,River Down-Stream,Ngong River at Nairobi dam entry,E. coli,FALSE,E.Coli,Positive,9,R,30,S,6,R,6,R,14,I,22,S,6,R,6,R,6,R,21,S,6,R
+Round 1,FESA017,River water,River Down-Stream,Ngong River at Ngong forest(Reference point),E. coli,FALSE,E.Coli,Positive,8,R,30,S,6,R,16,I,14,I,6,R,6,R,13,I,6,R,23,S,6,R
+Round 1,FESA018,River water,River Up-stream,Nairobi River at Ondiri Swamp,E. coli,FALSE,E.Coli,Negative,6,R,14,R,6,R,6,R,6,R,6,R,6,R,12,I,6,R,20,S,6,R
+Round 1,FESA019,Effluent,Slaughter house,Ndumboine slaughter house,E. coli,FALSE,E.coli,Positive,24,S,30,S,24,S,26,S,19,S,20,S,26,S,6,R,6,R,30,S,8,R
+Round 1,FESA019,Effluent,Slaughter house,Ndumboine slaughter house,E. coli,TRUE,E.Coli Mucoid,Positive,20,R,30,S,6,R,21,S,14,I,20,S,6,R,14,I,20,S,14,I,9,R
+Round 1,FESA020,River water,River Down-Stream,Muto Mawe River at Mombasa Road bridge,No growth,FALSE,No growth,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Round 1,FESA021,River water,River Up-stream,Ngong River at the edge of Ngong forest(Reference Kibra)-Scouts,No growth,FALSE,No growth,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Round 1,FESA022,River water,River Up-stream,Ruirwaka River at UN Gigiri bridge (Ference point),E. coli,FALSE,E.Coli,Positive,13,R,30,S,10,R,21,S,20,S,20,S,6,R,6,R,6,R,25,S,6,R
+Round 1,FESA023,River water,River Down-Stream,Nairobi River at Museum Hill,No growth,FALSE,No growth,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Round 1,FESA024,Influent,Slaughter house,Farmers Choice entry,E. coli,FALSE,E.Coli,Negative,16,R,25,S,16,R,21,S,8,R,20,S,19,R,14,I,30,S,24,S,6,R
+Round 1,FESA025,Effluent,Slaughter house,Farmers choice exit,E. coli,FALSE,E.Coli,Negative,22,R,27,S,16,R,22,S,6,R,20,S,6,R,6,R,6,R,30,S,6,R
+Round 1,FESA026,Influent,Slaughter house,Neema Livestock &slaughtering Investment Ltd-Entry,E. coli,FALSE,E.Coli,Positive,16,R,27,S,17,R,24,S,18,S,20,S,26,S,7,R,6,R,23,S,7,R
+Round 1,FESA027,Effluent,Slaughter house,Neema Livestock &slaughtering Investment Ltd -Exit,E. coli,FALSE,E.Coli,Positive,18,R,30,S,17,R,20,S,17,I,16,I,30,S,12,I,23,S,24,S,20,S
+Round 1,FESA028,Influent,Slaughter house,QMP slaughter house,E. coli,FALSE,E.Coli,Positive,25,S,30,S,20,S,25,S,22,S,20,S,24,I,16,S,12,I,25,S,8,R
+Round 1,FESA028,Influent,Slaughter house,QMP slaughter house,Klebsiella spp.,FALSE,Klebsiella spp,Negative,20,R,28,S,24,S,9,R,16,I,20,S,27,S,16,S,24,S,10,R,23,S
+Round 1,FESA029,Effluent,Slaughter house,QMP slaughter house,E. coli,FALSE,E.Coli,Positive,20,R,30,S,17,R,22,S,21,S,20,S,37,S,9,R,6,R,30,S,7,R
+Round 1,FESA029,Effluent,Slaughter house,QMP slaughter house,Klebsiella spp.,FALSE,Klebsiella spp,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Round 1,FESA030,Effluent,Slaughter house,Kiamaiko slaughter,No growth,FALSE,No growth,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Round 2,FESB001,River water,River Down-Stream,Nairobi River at Kilimambogo,No growth,FALSE,No growth,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Round 2,FESB002,River water,River Confluence,"Thiririrka River  U/S,Ruiru confluence",K. pneumoniae,FALSE,Klebsiella pneumoniae,POSITIVE,15,R,30,S,17,R,26,S,13,R,6,R,28,S,10,R,6,R,28,S,6,R
+Round 2,FESB003,River water,River Down-Stream,Ruiru river at theThika road bridge,E. coli,FALSE,E.Coli,POSITIVE,13,R,30,S,14,R,24,S,15,R,18,S,6,R,6,R,6,R,21,S,6,R
+Round 2,FESB004,River water,River Down-Stream,Kamiti River at Kiambu road bridge,No growth,FALSE,No growth,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Round 2,FESB005,River water,River Down-Stream,Athi river,No growth,FALSE,No growth,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Round 2,FESB006,River water,River Down-Stream,Mbagathi river at Kandidi,E. coli,FALSE,E.Coli,POSITIVE,17,R,30,S,18,R,25,S,20,S,20,S,25,I,7,R,6,R,27,S,11,R
+Round 2,FESB007,River water,River Down-Stream,Ngong river at scouts,E. coli,FALSE,E.Coli,POSITIVE,24,S,30,S,20,S,25,S,18,S,20,S,25,I,14,I,20,S,28,S,6,R
+Round 2,FESB007,River water,River Down-Stream,Ngong river at scouts,E. coli,TRUE,Mucoid E. Coli,NEGATIVE,10,R,28,S,6,R,14,R,16,I,20,S,6,R,14,I,6,R,20,S,6,R
+Round 2,FESB008,River water,River Down-Stream,Ngong river at dam entry,E. coli,FALSE,E.Coli,POSITIVE,20,R,30,S,20,S,25,S,20,S,20,S,24,I,10,R,14,I,30,S,25,S
+Round 2,FESB008,River water,River Down-Stream,Ngong river at dam entry,E. coli,TRUE,Mucoid E. Coli,NEGATIVE,16,R,30,S,16,R,26,S,16,I,20,S,6,R,6,R,6,R,25,S,6,R
+Round 2,FESB009,River water,River Down-Stream,Ngong River at dam exit,No growth,FALSE,No growth,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Round 2,FESB010,River water,River Down-Stream,Mbagathi river at Kamulu,No growth,FALSE,No growth,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Round 2,FESB011,Influent,River Down-Stream,WWTP-influent,No growth,FALSE,No growth,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Round 2,FESB012,Effluent,River Down-Stream,Effluent discharge 1,E. coli,FALSE,E.Coli,NEGATIVE,6,R,20,I,20,S,6,R,10,R,20,S,25,I,11,R,6,R,30,S,27,S
+Round 2,FESB012,Effluent,River Down-Stream,Effluent discharge 1,E. coli,TRUE,Mucoid E. Coli,POSITIVE,16,R,30,S,17,R,25,S,20,S,20,S,22,I,6,R,6,R,30,S,9,R
+Round 2,FESB013,Effluent,River Down-Stream,Effluent discharge 2,E. coli,FALSE,E.Coli,POSITIVE,19,R,28,S,20,S,23,S,13,R,18,S,21,R,6,R,6,R,6,R,6,R
+Round 2,FESB014,Effluent,River Down-Stream,Effluent discharge 3,E. coli,FALSE,E.Coli,POSITIVE,20,R,30,S,20,S,25,S,18,S,19,S,25,I,6,R,6,R,26,S,6,R
+Round 2,FESB014,Effluent,River Down-Stream,Effluent discharge 3,E. coli,TRUE,Mucoid E. Coli,NEGATIVE,6,R,11,R,6,R,6,R,6,R,21,S,6,R,14,I,6,R,26,S,6,R
+Round 2,FESB015,River water,River Down-Stream,Ngong River at Njiru,Klebsiella spp.,FALSE,Klebsiella spp,POSITIVE,13,R,30,S,15,R,25,S,16,I,9,R,6,R,6,R,6,R,6,R,6,R
+Round 2,FESB016,River water,River Down-Stream,Nairobi River at Ondiri Swamp,E. coli,FALSE,E.Coli,POSITIVE,18,R,29,S,18,R,23,S,12,R,22,S,6,R,6,R,6,R,25,S,6,R
+Round 2,FESB017,Effluent,River Down-Stream,Ndumbuini slaughter house,E. coli,FALSE,E.Coli,POSITIVE,23,S,27,S,19,S,25,S,21,S,18,S,26,S,14,I,6,R,12,R,6,R
+Round 2,FESB017,Effluent,River Down-Stream,Ndumbuini slaughter house,E. coli,TRUE,Mucoid E. Coli,POSITIVE,14,R,23,S,16,R,23,S,7,R,18,S,22,I,6,R,6,R,25,S,6,R
+Round 2,FESB018,River water,River Down-Stream,Ngong river at UN bridge,E. coli,FALSE,E.Coli,POSITIVE,20,R,28,S,20,S,24,S,20,S,20,S,20,R,6,R,6,R,15,I,6,R
+Round 2,FESB018,River water,River Down-Stream,Ngong river at UN bridge,E. coli,TRUE,Mucoid E. Coli,POSITIVE,14,R,28,S,14,R,30,S,18,S,20,S,24,I,6,R,6,R,26,S,6,R
+Round 2,FESB019,River water,River Down-Stream,Nairobi river at museum hill,Klebsiella spp.,FALSE,Klebsiella spp,POSITIVE,11,R,27,S,12,R,24,S,14,I,18,S,6,R,6,R,6,R,25,S,25,S
+Round 2,FESB020,River water,River Down-Stream,Nairobi river at outering bridge,E. coli,FALSE,E.Coli,POSITIVE,13,R,27,S,14,R,25,S,20,S,21,S,25,I,6,R,6,R,25,S,6,R
+Round 2,FESB021,River water,River Down-Stream,Ngong River at outering bridge,Klebsiella spp.,FALSE,Klebsiella spp,POSITIVE,12,R,25,S,13,R,23,S,11,R,10,R,25,I,6,R,6,R,25,S,6,R
+Round 2,FESB021,River water,River Down-Stream,Ngong River at outering bridge,Klebsiella spp.,FALSE,Klebsiella spp,NEGATIVE,12,R,20,I,12,R,6,R,6,R,20,S,12,R,6,R,6,R,28,S,9,R
+Round 2,FESB022,Influent,River Down-Stream,Farmers Choice entry,E. coli,FALSE,E.Coli,POSITIVE,20,R,30,S,21,S,25,S,15,I,20,S,6,R,6,R,24,S,25,S,6,R
+Round 2,FESB022,Influent,River Down-Stream,Farmers Choice entry,E. coli,TRUE,Mucoid E. Coli,POSITIVE,16,R,30,S,16,R,24,S,17,I,19,S,6,R,15,S,6,R,20,S,6,R
+Round 2,FESB023,Effluent,River Down-Stream,Farmers choice exit,Klebsiella spp.,FALSE,Klebsiella spp,NEGATIVE,17,R,30,S,20,S,25,S,6,R,21,S,15,R,6,R,6,R,6,R,25,S
+Round 2,FESB023,Effluent,River Down-Stream,Farmers choice exit,E. coli,TRUE,Mucoid E. Coli,POSITIVE,18,R,30,S,18,R,23,S,18,S,23,S,29,S,9,R,6,R,25,S,10,R
+Round 2,FESB024,Influent,River Down-Stream,Neema Livestock &slaughtering Investment Ltd-Entry,E. coli,FALSE,E.Coli,NEGATIVE,16,R,30,S,16,R,25,S,14,I,6,R,6,R,6,R,6,R,24,S,6,R
+Round 2,FESB024,Influent,River Down-Stream,Neema Livestock &slaughtering Investment Ltd-Entry,E. coli,TRUE,Mucoid E. Coli,POSITIVE,17,R,30,S,17,R,25,S,14,I,12,R,6,R,6,R,6,R,25,S,6,R
+Round 2,FESB025,Effluent,River Down-Stream,Neema Livestock &slaughtering Investment Ltd -Exit,E. coli,FALSE,E.Coli,NEGATIVE,6,R,30,S,6,R,19,R,12,R,6,R,6,R,6,R,22,S,6,R,6,R
+Round 2,FESB025,Effluent,River Down-Stream,Neema Livestock &slaughtering Investment Ltd -Exit,Klebsiella spp.,FALSE,Klebsiella spp,POSITIVE,23,S,30,S,21,S,26,S,25,S,18,S,23,I,12,I,6,R,27,S,20,S
+Round 2,FESB026,River water,River Down-Stream,"Thiririrka River  U/S,Ruiru confluence",E. coli,FALSE,E.Coli,NEGATIVE,6,R,28,S,6,R,8,R,12,R,6,R,6,R,6,R,23,S,6,R,6,R
+Round 2,FESB026,River water,River Down-Stream,"Thiririrka River  U/S,Ruiru confluence",E. coli,TRUE,Mucoid E. Coli,NEGATIVE,18,R,31,S,20,S,23,S,17,I,20,S,25,I,6,R,6,R,24,S,24,S
+Round 2,FESB027,River water,River Down-Stream,Nairobi river after confluence,E. coli,FALSE,E.Coli,NEGATIVE,6,R,10,R,6,R,6,R,6,R,6,R,6,R,6,R,6,R,21,S,6,R
+Round 2,FESB027,River water,River Down-Stream,Nairobi river after confluence,Klebsiella spp.,FALSE,Klebsiella spp,POSITIVE,19,R,14,R,19,S,24,S,19,S,19,S,25,I,6,R,6,R,27,S,6,R
+Round 2,FESB028,Effluent,River Down-Stream,Kiamaiko slaughter house,Klebsiella spp.,FALSE,Klebsiella spp,POSITIVE,18,R,27,S,18,R,24,S,17,I,19,S,25,I,6,R,6,R,25,S,23,S

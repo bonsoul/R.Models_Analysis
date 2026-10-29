@@ -1,0 +1,19 @@
+specimen,organism,priority,n
+Effluent,E. coli,Critical: carbapenem-resistant,1
+Effluent,E. coli,Critical: 3rd-gen cephalosporin-resistant,13
+Effluent,E. coli,Not in a priority category,2
+Effluent,Klebsiella,Critical: carbapenem-resistant,0
+Effluent,Klebsiella,Critical: 3rd-gen cephalosporin-resistant,3
+Effluent,Klebsiella,Not in a priority category,3
+Influent,E. coli,Critical: carbapenem-resistant,0
+Influent,E. coli,Critical: 3rd-gen cephalosporin-resistant,6
+Influent,E. coli,Not in a priority category,1
+Influent,Klebsiella,Critical: carbapenem-resistant,0
+Influent,Klebsiella,Critical: 3rd-gen cephalosporin-resistant,2
+Influent,Klebsiella,Not in a priority category,0
+River water,E. coli,Critical: carbapenem-resistant,2
+River water,E. coli,Critical: 3rd-gen cephalosporin-resistant,18
+River water,E. coli,Not in a priority category,1
+River water,Klebsiella,Critical: carbapenem-resistant,1
+River water,Klebsiella,Critical: 3rd-gen cephalosporin-resistant,8
+River water,Klebsiella,Not in a priority category,0
