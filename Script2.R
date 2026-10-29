@@ -132,13 +132,19 @@ f_infant <- as.formula(paste("Surv(time, event) ~", paste(sig_infant, collapse =
 cox_infant <- coxph(f_infant, data = df)
 summary(cox_infant)
 
-## =========================================================================
 ## OBJECTIVE 4 — Final model of HIV-free survival (maternal + infant, adjusted)
 ## H0(3): no time-varying (non-proportional) effect of a binary covariate, theta(t)=0
 ## =========================================================================
 final_vars   <- unique(c(sig_maternal, sig_infant))
-f_final      <- as.formula(paste("Surv(time, event) ~", paste(final_vars, collapse = " + ")))
-cox_full     <- coxph(f_final, data = df)
+
+## force ONE complete-case dataset across time/event + all candidate predictors,
+## so every model step() compares is fit on the same rows (else AIC isn't comparable
+## and drop1() errors with "number of rows in use has changed")
+df_final <- df %>% select(time, event, all_of(final_vars)) %>% tidyr::drop_na()
+cat("Rows used in final model:", nrow(df_final), "of", nrow(df), "\n")
+
+f_final  <- as.formula(paste("Surv(time, event) ~", paste(final_vars, collapse = " + ")))
+cox_full <- coxph(f_final, data = df_final)
 
 ## backward elimination on AIC for the parsimonious final model
 cox_final <- step(cox_full, direction = "backward")
@@ -153,7 +159,7 @@ plot(ph_test)
 car::vif(cox_final)
 
 ## forest plot of final adjusted model
-ggforest(cox_final, data = df)
+ggforest(cox_final, data = df_final)
 
 ## =========================================================================
 ## SPATIAL ANALYSIS — H0(4): incidences spatially independent
@@ -181,3 +187,4 @@ head(geo_pts[order(geo_pts$local_I_pval), ])      # potential hotspots/clusters
 ## Summary table for write-up (gtsummary)
 ## =========================================================================
 gtsummary::tbl_regression(cox_final, exponentiate = TRUE)
+
