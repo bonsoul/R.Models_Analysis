@@ -1,0 +1,11 @@
+round,specimen,outcome,n,total
+Round 1,River water,Growth,10,18
+Round 1,River water,No growth,8,18
+Round 1,Influent,Growth,4,4
+Round 1,Effluent,Growth,7,8
+Round 1,Effluent,No growth,1,8
+Round 2,River water,Growth,13,18
+Round 2,River water,No growth,5,18
+Round 2,Influent,Growth,2,3
+Round 2,Influent,No growth,1,3
+Round 2,Effluent,Growth,7,7

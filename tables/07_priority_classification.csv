@@ -1,0 +1,11 @@
+organism,specimen,priority,isolates,pct
+E. coli,River water,Critical,20,0.9523809523809523
+E. coli,River water,Not priority,1,0.047619047619047616
+E. coli,Influent,Critical,6,0.8571428571428571
+E. coli,Influent,Not priority,1,0.14285714285714285
+E. coli,Effluent,Critical,14,0.875
+E. coli,Effluent,Not priority,2,0.125
+Klebsiella pneumoniae/spp.,River water,Critical,9,1
+Klebsiella pneumoniae/spp.,Influent,Critical,2,1
+Klebsiella pneumoniae/spp.,Effluent,Critical,3,0.5
+Klebsiella pneumoniae/spp.,Effluent,Not priority,3,0.5

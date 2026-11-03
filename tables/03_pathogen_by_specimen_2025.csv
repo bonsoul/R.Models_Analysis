@@ -1,0 +1,7 @@
+specimen,organism,isolates,pct
+River water,E. coli,21,0.7
+River water,Klebsiella pneumoniae/spp.,9,0.3
+Influent,E. coli,7,0.7777777777777778
+Influent,Klebsiella pneumoniae/spp.,2,0.2222222222222222
+Effluent,E. coli,16,0.7272727272727273
+Effluent,Klebsiella pneumoniae/spp.,6,0.2727272727272727
