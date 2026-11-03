@@ -1,0 +1,9 @@
+round,specimen,samples_cultured,with_growth,no_growth,isolates_recovered,pct_growth
+Round 1,Effluent,8,7,1,10,87.5
+Round 1,Influent,4,4,0,5,100
+Round 1,River water,18,10,8,11,55.6
+Round 2,Effluent,7,7,0,12,100
+Round 2,Influent,3,2,1,4,66.7
+Round 2,River water,18,13,5,19,72.2
+Round 1,All specimens,30,21,9,26,70
+Round 2,All specimens,28,22,6,35,78.6

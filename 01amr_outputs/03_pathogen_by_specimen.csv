@@ -1,0 +1,13 @@
+specimen,pathogen,n,pct_of_specimen
+River water,E. coli,21,70
+River water,K. pneumoniae,1,3.3
+River water,Klebsiella spp.,8,26.7
+River water,K. oxytoca,0,0
+Influent,E. coli,7,77.8
+Influent,K. pneumoniae,0,0
+Influent,Klebsiella spp.,2,22.2
+Influent,K. oxytoca,0,0
+Effluent,E. coli,16,72.7
+Effluent,K. pneumoniae,0,0
+Effluent,Klebsiella spp.,6,27.3
+Effluent,K. oxytoca,0,0

@@ -1,0 +1,13 @@
+specimen,priority,n
+River water,Critical: carbapenem-resistant,2
+River water,Critical: 3rd-gen cephalosporin-resistant,21
+River water,"Growth, not in a priority category",0
+River water,No growth,13
+Influent,Critical: carbapenem-resistant,0
+Influent,Critical: 3rd-gen cephalosporin-resistant,6
+Influent,"Growth, not in a priority category",0
+Influent,No growth,1
+Effluent,Critical: carbapenem-resistant,1
+Effluent,Critical: 3rd-gen cephalosporin-resistant,13
+Effluent,"Growth, not in a priority category",0
+Effluent,No growth,1
